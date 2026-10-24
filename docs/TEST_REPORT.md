@@ -52,7 +52,19 @@
 - 数据库为真实 SQLite 文件（临时目录），HTTP 为真实回环 socket，进程测试 spawn 真实 Node 进程——全程无 Mock。
 - 引擎时钟为构造注入（DI），这是可测性设计而非 Mock 冒充：被测系统仍是真实引擎+真实存储。
 
+## GitHub CI 实际运行记录（2026-10-24 追加）
+
+远端仓库建立后（https://github.com/yangjingyu722/codementor ，私有），CI 首次在 GitHub 实际运行：
+
+| 项目   | 值                                                                                                                                    |
+| ------ | ------------------------------------------------------------------------------------------------------------------------------------- |
+| Run    | `40067608847`（push main，commit cd8b592）                                                                                            |
+| 运行器 | ubuntu-latest                                                                                                                         |
+| 步骤   | Install dependencies → Build → Typecheck → Lint → Format check → Test                                                                 |
+| 结果   | **全部成功**（56/56 测试通过，含 better-sqlite3 原生模块与真实子进程测试在 Linux 上通过）                                             |
+| 提示   | 非失败性弃用提示（actions 旧版运行时 / ubuntu 镜像迁移公告）；已升级 actions/checkout@v7、actions/setup-node@v7、pnpm/action-setup@v6 |
+
 ## 说明与限制
 
-- CI 未在 GitHub 实际运行（仓库未推送远端，属授权范围外动作）；本地已按 CI 完全相同的命令与顺序执行通过。
+- CI 已在 GitHub 实际运行并通过（见上节）。
 - 真实 OpenCode Agent 集成测试属阶段 2 范围，本阶段未涉及。

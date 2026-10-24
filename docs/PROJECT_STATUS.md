@@ -37,11 +37,15 @@
 
 ## 阻塞问题
 
-无。已知非阻塞事项：
+无。远端仓库与 CI 已建立（2026-10-24）：
 
-1. 本地目录名 `SumaryList`（会话进程占用无法在会话内改名）；无功能影响。
-2. CI 尚未在 GitHub 实际运行（未推送远端，属授权范围外）；本地已按 CI 相同顺序全绿。
-3. 项目名与 codementor.io 相近（阶段 6 前决策）。
+- 远端：https://github.com/yangjingyu722/codementor（私有；按总控计划，转公开留待阶段 6 开源发布）
+- CI 已在 GitHub 实际运行并通过：run `40067608847`（ubuntu-latest，install→build→typecheck→lint→format→test 全绿，56/56 测试）
+
+已知非阻塞事项：
+
+1. 本地目录名 `SumaryList`（会话进程占用无法在会话内改名）；无功能影响，git 仓库名独立为 `codementor`。
+2. 项目名与 codementor.io 相近（阶段 6 前决策，涉及潜在改名时需同步调整包名 `@codementor/*` 与文档）。
 
 ## 进入阶段 2 的条件
 
