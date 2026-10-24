@@ -209,7 +209,7 @@ export const AgentEventSchema = z.object({
   sessionId: entityId,
   agent: AgentIdSchema,
   type: AgentEventTypeSchema,
-  payload: z.record(z.unknown()),
+  payload: z.record(z.string(), z.unknown()),
   occurredAt: isoTimestamp,
 });
 export type AgentEvent = z.infer<typeof AgentEventSchema>;

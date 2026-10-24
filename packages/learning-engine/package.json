@@ -23,7 +23,7 @@
     "@codementor/contracts": "workspace:*",
     "@codementor/decision-engine": "workspace:*",
     "@codementor/storage": "workspace:*",
-    "zod": "^3.23.8"
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "typescript": "^5.6.3"
