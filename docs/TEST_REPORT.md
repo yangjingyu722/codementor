@@ -99,3 +99,45 @@
 
 - CI 已在 GitHub 实际运行并通过：阶段 1（run 40067608847 / 40067863621）与**阶段 3（run 40071533849，提交 cf3ef8f，ubuntu-latest + Node 20）**——后者验证了 tree-sitter 0.22.4+0.23.4 的 Linux 预编译可用性，92/92 测试在 Linux 全绿。
 - 真实 OpenCode Agent 集成测试属阶段 2 范围，本阶段未涉及。
+
+## 阶段 4 验证记录（2026-10-24 追加）
+
+环境：Windows 10 x64 · Node v24.12.0 · VS Code 1.143.1（@vscode/test-electron 自动下载）· vsce 3.x
+
+| #   | 命令/步骤                                           | 结果                                                                                                               | 退出码 |
+| --- | --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ | ------ |
+| 1   | `pnpm --filter codementor build`                    | 扩展编译通过（CJS，dist/extension.js）                                                                             | 0      |
+| 2   | `npx vsce package --no-dependencies`                | **打包成功**：dist/codementor-0.1.0.vsix（12 文件，19.62 KB；README/LICENSE/图标/manifest 齐备）                   | 0      |
+| 3   | `pnpm vitest run apps/vscode/test`                  | ApiClient 5/5（真实服务进程：发现/health/lookup 未注册 undefined/只读链路/错误透传）                               | 0      |
+| 4   | `pnpm vitest run tests/server.anchors.http.test.ts` | 6/6（新增 lookup/tasks/anchors 三端点用例）                                                                        | 0      |
+| 5   | `pnpm test:vscode`（第 1 次）                       | **失败**：套件内 spawn 服务超时——扩展宿主内 process.execPath 是 VS Code 自身                                       | 1      |
+| 6   | `pnpm test:vscode`（第 2 次）                       | **失败**：种子数据决策 ID 取值路径错误（{decision:{id}}）                                                          | 1      |
+| 7   | `pnpm test:vscode`（第 3 次）                       | **失败 3 项**：树与 CodeLens 断言 info/0——根因为 VS Code 工作区 URI 盘符小写化（c:\ vs C:\）导致 lookupProject 404 | 1      |
+| 8   | `pnpm test:vscode`（第 4 次，realpath 修复后）      | **6/6 全部通过**（真实 VS Code 1.143.1 + 真实核心服务进程 + 真实 C 工程 fixture）                                  | 0      |
+| 9   | `pnpm verify`（首次）                               | **ESLint OOM**——`.vscode-test/`（1.1GB）未忽略被全量扫描                                                           | 134    |
+| 10  | ignore 修复后 `pnpm verify`                         | 全绿：build→typecheck→lint→format→test（**99/99**）                                                                | 0      |
+
+### Extension Tests 明细（真实 VS Code 实例内运行，6/6）
+
+| 测试                                  | 验证内容                                                              |
+| ------------------------------------- | --------------------------------------------------------------------- |
+| 激活并注册全部命令                    | 5 个命令全部注册（激活测试）                                          |
+| 决策树 Project→Task→Decision→Anchor   | 真实种子数据（任务"实现上下文切换"、决策"全量寄存器保存"/"轮询调度"） |
+| CodeLens 在 proc.c 函数上提供决策入口 | 两个函数各 1 条 lens，标题含决策名                                    |
+| 从决策关联跳转到代码                  | revealAnchor 后 activeEditor=proc.c 且选中行=锚点起始行               |
+| 打开决策详情面板                      | 面板创建计数递增                                                      |
+| 服务停止后决策树明确提示离线          | kill 服务进程后树根为"核心服务未连接"节点                             |
+
+测试基础设施：临时 fixture（C 工程 + git 仓库 + .vscode/settings.json 指向临时服务目录）；核心服务由套件拉起真实进程；种子数据全部经真实 HTTP API 写入。无 Mock。
+
+### 自动化覆盖情况与人工测试步骤
+
+以下交互依赖真实图形界面观感，无法自动断言，提供人工验证步骤（自动化覆盖：无）：
+
+1. **主题适配**（暗/亮）：命令面板 → "首选项: 切换深色/浅色主题" → 决策树图标与详情页各区块颜色均应随主题变化且对比度可读。依据：Webview 全部使用 --vscode-* 变量，无硬编码颜色（代码审计可证）。
+2. **CodeLens 视觉呈现**：打开 proc.c，函数上方应显示 "◆ 设计决策：…" 灰色小字链接；点击后详情在侧边打开。
+3. **离线状态栏**：停止核心服务 → 执行 "CodeMentor: 刷新" → 右下角出现 "CodeMentor 服务未连接" 状态栏项，点击弹出帮助说明与"打开设置"操作；不应出现模态弹窗。
+4. **失效关联警示**：对锚定符号做删除后触发重验证 → 决策树锚点图标变红色 "error"，点击跳转时出现非阻断警告"该设计关联已失效…显示最后已知位置"。
+5. **vsix 安装**：`code --install-extension apps/vscode/dist/codementor-0.1.0.vsix` → 活动栏出现 CodeMentor 图标。
+
+补充说明：VS Code 集成测试要求显示环境；CI 接入（ubuntu + xvfb）留待阶段 6，未包含在本轮。

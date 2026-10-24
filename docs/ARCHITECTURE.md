@@ -16,7 +16,7 @@ CodeMentor 由三层构成：
 
 | 模块                                                     | 阶段 | 状态       | 职责                                                                                         | 不负责                 |
 | -------------------------------------------------------- | ---- | ---------- | -------------------------------------------------------------------------------------------- | ---------------------- |
-| VS Code Extension (`apps/vscode`)                        | 4    | 骨架       | TreeView / CodeLens / Webview；与本地服务通信；把用户操作翻译成服务调用                      | 任何业务规则、存储     |
+| VS Code Extension (`apps/vscode`)                        | 4    | ✅         | 纯视图层：决策树 / 详情 Webview / CodeLens / 跳转（ADR-0007）                                | 任何业务规则、存储     |
 | Local Core Service (`apps/server`)                       | 1    | ✅         | 核心进程：装载引擎与存储、回环 HTTP + token 传输（ADR-0004）                                 | UI、Agent 私有格式解析 |
 | MCP Agent Adapter (`packages/mcp`*)                      | 2    | 计划       | 把核心层能力暴露为 MCP 工具（mentor_* 五工具）；经核心服务 API 落库                          | 决策规则本身           |
 | OpenCode Event Adapter                                   | 2    | 计划       | 订阅 OpenCode 事件，归一化为 AgentEvent                                                      | 其他 Agent 的私有格式  |

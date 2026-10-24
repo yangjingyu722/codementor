@@ -7,12 +7,14 @@
       "@codementor/contracts": ["packages/contracts/src/index.ts"],
       "@codementor/storage": ["packages/storage/src/index.ts"],
       "@codementor/decision-engine": ["packages/decision-engine/src/index.ts"],
-      "@codementor/code-mapping": ["packages/code-mapping/src/index.ts"]
+      "@codementor/code-mapping": ["packages/code-mapping/src/index.ts"],
+      "@codementor/vscode/client": ["apps/vscode/src/client/api-client.ts"]
     }
   },
   "include": [
     "tests/**/*.ts",
     "packages/*/test/**/*.ts",
+    "apps/*/test/**/*.ts",
     "packages/code-mapping/src/types/**/*.d.ts",
     "vitest.config.ts"
   ]

@@ -1,5 +1,5 @@
 {
-  "name": "codementor",
+  "name": "codementor-monorepo",
   "version": "0.1.0",
   "private": true,
   "description": "CodeMentor — 嵌入 AI 编程工作流的工程认知学习系统",
@@ -16,7 +16,9 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test": "vitest run",
-    "verify": "pnpm build && pnpm typecheck && pnpm lint && pnpm format:check && pnpm test"
+    "verify": "pnpm build && pnpm typecheck && pnpm lint && pnpm format:check && pnpm test",
+    "test:vscode": "pnpm --filter codementor build && node apps/vscode/dist/test/run-test.js",
+    "package:vscode": "pnpm --filter codementor package"
   },
   "devDependencies": {
     "@eslint/js": "^9.14.0",

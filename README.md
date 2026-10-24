@@ -26,7 +26,7 @@
 | 1    | 核心数据模型与本地服务                  | ✅                             |
 | 2    | MCP 服务与 Agent 适配                   | ⬜（顺序经所有者调整，待下达） |
 | 3    | 源码分析与设计关联                      | ✅                             |
-| 4    | VS Code 插件                            | ⬜                             |
+| 4    | VS Code 插件                            | ✅                             |
 | 5    | 工程学习引擎                            | ⬜                             |
 | 6    | 完整集成与开源发布                      | ⬜                             |
 
@@ -34,7 +34,7 @@
 
 ```
 apps/
-  vscode/            VS Code 扩展（阶段 4 实现）
+  vscode/            VS Code 扩展：决策树 / 详情 / CodeLens（纯视图层）
   server/            本地核心服务：回环 HTTP + token（已实现，见 docs/LOCAL_API.md）
 packages/
   contracts/         数据契约：Zod schema + 完整性规则
@@ -42,7 +42,7 @@ packages/
   decision-engine/   决策引擎：生命周期 + 完整性规则执行
   code-mapping/      代码映射引擎：Tree-sitter(C) + 只读 Git + 锚定/失效检测
 docs/                PRD / 架构 / 契约 / ADR / API / 状态与测试报告
-tests/               根级集成测试（HTTP / 子进程 / proc 验收场景）
+tests/               根级集成测试（HTTP / 子进程 / proc 验收 / 锚点）
 ```
 
 ## 开发

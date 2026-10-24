@@ -181,6 +181,12 @@ export class MappingService {
     }));
   }
 
+  /** 只读查询：项目下全部锚点（CodeLens 数据源）。 */
+  listProjectAnchors(projectId: string): CodeAnchor[] {
+    this.storage.getProject(projectId);
+    return this.storage.listCodeAnchorsByProject(projectId);
+  }
+
   /**
    * 重验证项目全部锚点：符号优先重定位。
    * 文件消失先查 git 重命名；无法唯一定位 → ambiguous；符号不存在 → missing。

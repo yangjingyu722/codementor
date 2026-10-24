@@ -1,5 +1,12 @@
 import type { ZodTypeAny } from 'zod';
-import type { Claim, Decision, Evidence, IntegrityResult, Task } from '@codementor/contracts';
+import type {
+  Claim,
+  Decision,
+  Evidence,
+  IntegrityResult,
+  Project,
+  Task,
+} from '@codementor/contracts';
 import { validateDecisionIntegrity } from '@codementor/contracts';
 import { CodeMentorStorage } from '@codementor/storage';
 import { CodeMentorError } from './errors.js';
@@ -240,5 +247,16 @@ export class DecisionEngine {
   listTaskDecisions(taskId: string): Decision[] {
     this.storage.getTask(taskId);
     return this.storage.listDecisionsByTask(taskId);
+  }
+
+  /** 只读查询：按 rootPath 查找项目（扩展工作区识别用）。 */
+  findProjectByRootPath(rootPath: string): Project | undefined {
+    return this.storage.findProjectByRootPath(rootPath);
+  }
+
+  /** 只读查询：项目下全部任务。 */
+  getProjectTasks(projectId: string): Task[] {
+    this.storage.getProject(projectId);
+    return this.storage.listTasksByProject(projectId);
   }
 }

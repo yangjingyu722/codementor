@@ -1,0 +1,8 @@
+src/**
+node_modules/**
+dist/test/**
+**/*.map
+**/*.ts
+.vscode-test/**
+pnpm-lock.yaml
+tsconfig.json

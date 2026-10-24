@@ -125,4 +125,39 @@ describe('锚点 HTTP 端点（真实回环连接 + 真实仓库）', () => {
     ).json()) as Array<{ startLine: number }>;
     expect(list[0]!.startLine).toBe(3);
   });
+
+  it('projects/lookup：按 rootPath 查找，未注册返回 404', async () => {
+    const base = `http://127.0.0.1:${port}`;
+    const encoded = encodeURIComponent(repo.root);
+    const found = await fetch(`${base}/api/projects/lookup?rootPath=${encoded}`, { headers });
+    expect(found.status).toBe(200);
+    const project = (await found.json()) as { id: string; rootPath: string };
+    expect(project.id).toBe(projectId);
+
+    const missing = await fetch(
+      `${base}/api/projects/lookup?rootPath=${encodeURIComponent('/definitely/absent')}`,
+      { headers },
+    );
+    expect(missing.status).toBe(404);
+
+    const bad = await fetch(`${base}/api/projects/lookup`, { headers });
+    expect(bad.status).toBe(400);
+  });
+
+  it('projects/:id/tasks 与 projects/:id/anchors 列表端点', async () => {
+    const base = `http://127.0.0.1:${port}`;
+    const tasks = await fetch(`${base}/api/projects/${projectId}/tasks`, { headers });
+    expect(tasks.status).toBe(200);
+    const taskList = (await tasks.json()) as Array<{ id: string }>;
+    expect(taskList.length).toBeGreaterThan(0);
+
+    const anchors = await fetch(`${base}/api/projects/${projectId}/anchors`, { headers });
+    expect(anchors.status).toBe(200);
+    const anchorList = (await anchors.json()) as Array<{ decisionId: string; filePath: string }>;
+    expect(anchorList.length).toBeGreaterThan(0);
+    expect(anchorList.every((a) => a.decisionId === decisionId)).toBe(true);
+
+    const missing = await fetch(`${base}/api/projects/proj_missing/tasks`, { headers });
+    expect(missing.status).toBe(404);
+  });
 });

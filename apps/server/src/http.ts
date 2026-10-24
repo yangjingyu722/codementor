@@ -147,6 +147,31 @@ const ROUTES: Route[] = [
     },
   },
   {
+    method: 'GET',
+    segments: ['api', 'projects', 'lookup'],
+    handler: (ctx) => {
+      const rootPath = ctx.query.get('rootPath');
+      if (rootPath === null || rootPath.length === 0) {
+        throw new HttpError(400, 'VALIDATION', 'query requires rootPath');
+      }
+      const project = ctx.engine.findProjectByRootPath(rootPath);
+      if (project === undefined) {
+        throw new HttpError(404, 'NOT_FOUND', `no project registered for rootPath ${rootPath}`);
+      }
+      return project;
+    },
+  },
+  {
+    method: 'GET',
+    segments: ['api', 'projects', ':id', 'tasks'],
+    handler: (ctx) => ctx.engine.getProjectTasks(requireParam(ctx, 'id')),
+  },
+  {
+    method: 'GET',
+    segments: ['api', 'projects', ':id', 'anchors'],
+    handler: (ctx) => requireMapping(ctx).listProjectAnchors(requireParam(ctx, 'id')),
+  },
+  {
     method: 'POST',
     segments: ['api', 'projects', ':id', 'anchors', 'revalidate'],
     handler: (ctx) => requireMapping(ctx).revalidateProject(requireParam(ctx, 'id')),

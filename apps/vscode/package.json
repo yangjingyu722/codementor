@@ -1,19 +1,103 @@
 {
-  "name": "@codementor/vscode",
+  "name": "codementor",
+  "displayName": "CodeMentor",
+  "description": "工程认知学习系统：在编辑器中查看 AI 编程决策与源码的关联",
   "version": "0.1.0",
-  "description": "CodeMentor VS Code 扩展（UI 宿主：TreeView / CodeLens / Webview，阶段 4 实现）",
-  "type": "module",
   "license": "MIT",
+  "publisher": "codementor-dev",
+  "private": true,
   "main": "./dist/extension.js",
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "typecheck": "tsc --noEmit -p tsconfig.json"
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "package": "vsce package --no-dependencies --out dist/codementor-0.1.0.vsix",
+    "test": "node dist/test/run-test.js"
   },
   "engines": {
     "vscode": "^1.90.0"
   },
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "codementor",
+          "title": "CodeMentor",
+          "icon": "media/codementor.svg"
+        }
+      ]
+    },
+    "views": {
+      "codementor": [
+        {
+          "id": "codementor.decisions",
+          "name": "工程决策",
+          "visibility": "visible"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "codementor.refresh",
+        "title": "刷新",
+        "category": "CodeMentor",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "codementor.openDecision",
+        "title": "查看设计决策详情",
+        "category": "CodeMentor"
+      },
+      {
+        "command": "codementor.revealAnchor",
+        "title": "跳转到关联代码",
+        "category": "CodeMentor"
+      },
+      {
+        "command": "codementor.revalidateAnchors",
+        "title": "重新验证锚点",
+        "category": "CodeMentor",
+        "icon": "$(sync)"
+      },
+      {
+        "command": "codementor.showServiceHelp",
+        "title": "服务连接帮助",
+        "category": "CodeMentor"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "codementor.refresh",
+          "group": "navigation@1"
+        },
+        {
+          "command": "codementor.revalidateAnchors",
+          "group": "navigation@2"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "CodeMentor",
+      "properties": {
+        "codementor.homeDir": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "CodeMentor 核心服务数据目录（含 server.json）。留空时依次使用 `CODEMENTOR_HOME` 环境变量与 `~/.codementor`。"
+        }
+      }
+    }
+  },
   "devDependencies": {
+    "@codementor/contracts": "workspace:*",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^20.17.6",
     "@types/vscode": "^1.90.0",
+    "@vscode/test-electron": "^2.5.2",
+    "@vscode/vsce": "^3.3.2",
+    "mocha": "^11.7.4",
     "typescript": "^5.6.3"
   }
 }
