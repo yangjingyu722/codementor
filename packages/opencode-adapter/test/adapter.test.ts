@@ -10,7 +10,6 @@ import {
 } from '@codementor/opencode-adapter';
 import { spawn } from 'node:child_process';
 
-const repoRoot = fileURLToPath(new URL('../..', import.meta.url));
 const serverEntry = fileURLToPath(new URL('../../../apps/server/dist/index.js', import.meta.url));
 
 let home: string;

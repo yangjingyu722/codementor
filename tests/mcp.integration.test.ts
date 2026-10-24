@@ -1,8 +1,8 @@
 import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { CodeMentorStorage } from '@codementor/storage';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
@@ -13,9 +13,7 @@ import { TestRepo } from '../packages/code-mapping/test/test-repo.js';
  * + 真实核心服务 HTTP + 真实 git 仓库。无 Mock。
  */
 
-const repoRoot = fileURLToPath(new URL('..', import.meta.url));
 const mcpEntry = fileURLToPath(new URL('../packages/mcp/dist/main.js', import.meta.url));
-const serverEntry = fileURLToPath(new URL('../apps/server/dist/index.js', import.meta.url));
 
 let home: string;
 let server: import('node:http').Server;

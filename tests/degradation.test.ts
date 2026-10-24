@@ -1,7 +1,6 @@
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { CodeMentorStorage } from '@codementor/storage';
 import { MappingService } from '@codementor/code-mapping';
@@ -13,7 +12,6 @@ import { TestRepo } from '../packages/code-mapping/test/test-repo.js';
  * 红线：不得伪造事前设计决策；文件变化仍可形成观察记录（提案）。
  */
 
-const repoRoot = fileURLToPath(new URL('..', import.meta.url));
 let home: string;
 let server: import('node:http').Server | undefined;
 let base = '';
