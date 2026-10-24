@@ -179,10 +179,11 @@ describe('DecisionEngine（真实存储 + 可控时钟）', () => {
     close();
   });
 
-  it('回填早于 declaredAt 的 producedAt → 完整性暴露 declared-after-evidence', () => {
+  it('回填早于 declaredAt 的 producedAt → 写入放行、验证拦截（复审 m9 固定语义）', () => {
     const { engine, close } = makeEngine();
     const { decisionId } = startTaskWithDecision(engine); // declaredAt = 10:00:01
-    engine.recordObservation({
+    // 写入放行：producedAt 由调用方申报（服务端无从核实现实时刻），原样落库不抛错
+    const { evidence } = engine.recordObservation({
       decisionId,
       claim: { kind: 'benefit', statement: '观察' },
       evidence: {
@@ -192,6 +193,9 @@ describe('DecisionEngine（真实存储 + 可控时钟）', () => {
         producedAt: '2026-10-24T09:00:00Z', // 早于声明：时序造假在读取侧暴露
       },
     });
+    // 落库事实：伪造值被持久化（无写入期真实性裁决）
+    expect(engine.getDecisionBundle(decisionId).evidence.map((e) => e.id)).toContain(evidence.id);
+    // 验证拦截：读取/验证路径即时重算完整性，回填值落入 R5 可检测范围
     const bundle = engine.getDecisionBundle(decisionId);
     expect(bundle.integrity.ok).toBe(false);
     expect(bundle.integrity.issues.map((i) => i.code)).toContain('declared-after-evidence');

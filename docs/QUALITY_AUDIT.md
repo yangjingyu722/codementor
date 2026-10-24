@@ -22,7 +22,9 @@
 | 学习内容零虚构                              | 无锚点→无定位题；无主张→拒绝生成；rubric 关键词全部来自真实记录                     | learning.test「要求4」「缺 claims 拒绝生成」+ RISC-V Explain 断言 |
 | UI 来源呈现不混淆                           | Webview 三区分离（declared/observed/rationalized）+ inferred 锚点显式标注"自动关联" | 人工测试步骤（TEST_REPORT 阶段 5）                                |
 
-**结论**：存在纵深防御（时钟、schema、完整性规则、API 面、UI 标注五层），未发现可绕过路径把事后解释伪装为事前记录。
+**结论**：存在纵深防御（时钟、schema、完整性规则、API 面、UI 标注五层）。**措辞限定（复审 m9）**：该防御对**惰性事后补写**有效（实现+跑测试在前、迟到声明在后、登记的全部证据早于声明 → R5 拦截）；它**不防御蓄意时序操纵**——对抗性 Agent 可先实现+跑测试（T1）、迟到声明（T2）、再跑新测试（T3>T2）并只登记新证据，R5 通过；锚点 commitSha 对应的提交时间与 declaredAt 之间**无自动化交叉检查**（仅可人工比对）。该残余风险已列入 §13。
+
+**producedAt 的"写入放行、验证拦截"语义（复审实测确认）**：`producedAt` 由调用方申报——它是关于现实世界的时刻，服务端无从核实，因此**写入路径放行**（伪造/回填的 producedAt 正常落库，HTTP 201；有测试固定该行为）。它不直接授予任何信任：读取与验证路径**即时重算**完整性（R1–R5），使伪造值进入规则可检测的范围即被拦截（如回填早于声明的旧证据 → R5 declared-after-evidence）。
 
 ## 3. 插件生命周期
 
@@ -76,6 +78,7 @@
 
 - `pnpm audit --prod`：**0 漏洞**（zod 3→4 升级修复了 1 个 high：GHSA-mrhx-c7xc-m3w5，迁移代价 1 行 `z.record` 签名）。
 - devDependencies 审计：21 项（3 low / 10 moderate / 5 high / 3 critical），全部位于构建/测试工具链（esbuild、glob 等传递依赖），**不进入运行时与发布物**（vsce 包 12 文件、22.65 KB，零运行时 npm 依赖）；已在 SECURITY.md 记录与跟进策略。
+- **已知无害现象（复审 m10 确认）**：pnpm 8 升级后不主动 GC `node_modules/.pnpm` 中的旧版本孤儿目录（如 zod@3.25.76 残留）——以锁文件为准（仅含 zod@4.6.7），全新克隆只解析锁定版本；陈旧目录惰性无害，可随时 `rm -rf node_modules && pnpm install` 清除。
 
 ## 12. 测试覆盖情况
 
@@ -87,3 +90,4 @@
 1. 原生模块（better-sqlite3、tree-sitter）绑定 Node 大版本与 ABI 配对——版本精确钉住 + 探针流程已文档化（ADR-0003/0005）。
 2. 扩展测试未进 CI（需 ubuntu xvfb job）——以本地真实 VS Code 运行为准。
 3. 单 token 明文落盘（本地威胁模型内可接受，见 SECURITY.md）。
+4. **声明时序的对抗性操纵残余风险（复审 m9）**：R5 只能拦截"惰性事后补写"（全部已登记观察证据早于 declaredAt）；蓄意 Agent 可先实现+跑测试、迟到声明、再跑一次新测试并只登记新证据——R5 通过，且锚点 commitSha 的提交时间与 declaredAt 之间无自动化交叉检查。v0.1 单用户本地威胁模型下可接受（CodeMentor 的完整性规则是**可信度标注与检测机制**，不是对抗恶意 Agent 的沙箱）；未来增强：入库时校验 commit-time ≤ declaredAt（代码映射引擎已有 commitSha，成本低）。

@@ -126,6 +126,8 @@
 
 存在意义：让"理由"与"事实"分离——主张可以错，证据不会说谎。`producedAt` 支撑 R5 时序规则。
 
+**`producedAt` 的"写入放行、验证拦截"语义**：`producedAt` 由调用方申报——它是关于现实世界的时刻，服务端无从核实，因此**写入路径放行**（申报值原样落库，不做真实性裁决）。它不直接授予信任：读取与验证路径**即时重算**完整性，申报值一旦进入 R1–R5 可检测的范围即被拦截（典型：回填早于 `declaredAt` 的旧证据 → R5 `declared-after-evidence`）。已知边界：蓄意时序操纵（声明后再产生新证据并只登记新证据）不在 R5 能力范围内，见 QUALITY_AUDIT §13 残余风险清单。
+
 ### 2.7 AgentEvent —— 归一化事件流
 
 | 字段       | 类型      | 约束                                                                               |
@@ -190,13 +192,13 @@ erDiagram
 
 实现：`packages/contracts/src/integrity.ts` 的 `validateDecisionIntegrity()`。规则编号与代码中的 `IntegrityIssueCode` 一致。
 
-| 规则                                                                   | 编号                                     | 含义                                         |
-| ---------------------------------------------------------------------- | ---------------------------------------- | -------------------------------------------- |
-| 每条 Decision 至少含一条 `declared` 主张                               | `missing-declared-claim`                 | 只有事后解释的"决策"不是设计决策，是重构叙事 |
-| 主张只能引用存在的 Evidence                                            | `unknown-evidence-ref`                   | 防止悬空引用                                 |
-| `observed` 主张必须引用至少一条证据                                    | `observed-claim-without-evidence`        | 观察事实不允许无出处                         |
-| `verified` 决策必须存在"已支撑（supported）且带证据"的 `observed` 主张 | `verified-without-supported-observation` | 验证状态由事实授予，不由口头理由授予         |
-| `declaredAt` 不得晚于其 `observed` 证据的最早 `producedAt`             | `declared-after-evidence`                | 声明必须先于实现证据，否则是事后补写         |
+| 规则                                                                   | 编号                                     | 含义                                                                                                           |
+| ---------------------------------------------------------------------- | ---------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| 每条 Decision 至少含一条 `declared` 主张                               | `missing-declared-claim`                 | 只有事后解释的"决策"不是设计决策，是重构叙事                                                                   |
+| 主张只能引用存在的 Evidence                                            | `unknown-evidence-ref`                   | 防止悬空引用                                                                                                   |
+| `observed` 主张必须引用至少一条证据                                    | `observed-claim-without-evidence`        | 观察事实不允许无出处                                                                                           |
+| `verified` 决策必须存在"已支撑（supported）且带证据"的 `observed` 主张 | `verified-without-supported-observation` | 验证状态由事实授予，不由口头理由授予                                                                           |
+| `declaredAt` 不得晚于其 `observed` 证据的最早 `producedAt`             | `declared-after-evidence`                | 声明必须先于实现证据，否则是事后补写（**能力边界**：仅对"惰性事后补写"有效；蓄意时序操纵见 QUALITY_AUDIT §13） |
 
 ## 5. v0.2 候选演进（本阶段不实现）
 
