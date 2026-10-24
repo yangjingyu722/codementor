@@ -24,7 +24,7 @@
   （confirmed / ambiguous / missing）、自动关联提案（只提案不落库）。
 - **学习引擎**（`@codementor/learning-engine`）：Problem→Predict→Explain→Verify→Transfer
   五步流程；三级渐进学习；确定性评分（gradedBy 治理，LLM 永不作事实）；进度由作答派生。
-- **本地核心服务**（`apps/server`）：18 个端点；回环 HTTP + Bearer token + server.json 发现。
+- **本地核心服务**（`apps/server`）：21 个端点；回环 HTTP + Bearer token + server.json 发现。
 - **VS Code 扩展**（`apps/vscode`）：决策树（Project→Task→Decision→Anchor）、按认知来源
   分区的详情 Webview、CodeLens 反向入口、跳转与失效警示、五步学习交互。
 - **示例工程**：Demo A（简单 C 工程）与 Demo B（简化 RISC-V 进程调度）+ 一键种子脚本。

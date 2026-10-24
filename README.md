@@ -41,7 +41,7 @@ Full walkthrough: [docs/USER_GUIDE.md](docs/USER_GUIDE.md) · Demos: [docs/DEMOS
 ```
 apps/
   vscode/            VS Code extension — pure view layer (tree / detail / CodeLens / learning)
-  server/            local core service — loopback HTTP + token, 18 endpoints
+  server/            local core service — loopback HTTP + token, 21 endpoints
 packages/
   contracts/         Zod schemas, epistemic-origin taxonomy, integrity rules R1-R5
   storage/           SQLite (better-sqlite3) + versioned migrations
