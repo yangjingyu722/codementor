@@ -97,5 +97,5 @@
 
 ## 说明与限制
 
-- CI 已在 GitHub 实际运行并通过（阶段 1 提交，见上节）；阶段 3 提交暂未推送（推送需所有者授权），推送后 CI 将验证 tree-sitter 在 ubuntu/Node20 的 Linux 预编译可用性。
+- CI 已在 GitHub 实际运行并通过：阶段 1（run 40067608847 / 40067863621）与**阶段 3（run 40071533849，提交 cf3ef8f，ubuntu-latest + Node 20）**——后者验证了 tree-sitter 0.22.4+0.23.4 的 Linux 预编译可用性，92/92 测试在 Linux 全绿。
 - 真实 OpenCode Agent 集成测试属阶段 2 范围，本阶段未涉及。
