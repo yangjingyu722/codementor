@@ -210,6 +210,8 @@ export const AgentEventSchema = z.object({
   agent: AgentIdSchema,
   type: AgentEventTypeSchema,
   payload: z.record(z.string(), z.unknown()),
+  /** 归属的进行中任务（由服务端按 projectRoot 解析，可能为空）。 */
+  taskId: entityId.optional(),
   occurredAt: isoTimestamp,
 });
 export type AgentEvent = z.infer<typeof AgentEventSchema>;

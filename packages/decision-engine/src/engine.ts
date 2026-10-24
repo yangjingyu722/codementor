@@ -1,5 +1,6 @@
 import type { ZodTypeAny } from 'zod';
 import type {
+  AgentEvent,
   Claim,
   Decision,
   Evidence,
@@ -7,6 +8,7 @@ import type {
   Project,
   Task,
 } from '@codementor/contracts';
+import { AgentEventSchema } from '@codementor/contracts';
 import { validateDecisionIntegrity } from '@codementor/contracts';
 import { CodeMentorStorage } from '@codementor/storage';
 import { CodeMentorError } from './errors.js';
@@ -258,5 +260,17 @@ export class DecisionEngine {
   getProjectTasks(projectId: string): Task[] {
     this.storage.getProject(projectId);
     return this.storage.listTasksByProject(projectId);
+  }
+
+  /** Agent 事件入库（阶段 2：OpenCode 适配器的落点）。 */
+  createAgentEvent(input: unknown): AgentEvent {
+    // 输入无 id：id 由存储层生成，此处用 omit 过的输入 schema 校验
+    const event = AgentEventSchema.omit({ id: true }).parse(input) as Omit<AgentEvent, 'id'>;
+    return this.storage.createAgentEvent(event);
+  }
+
+  listTaskEvents(taskId: string): AgentEvent[] {
+    this.storage.getTask(taskId);
+    return this.storage.listAgentEventsByTask(taskId);
   }
 }

@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import Database from 'better-sqlite3';
 import {
+  AgentEventSchema,
   AttemptSchema,
   ClaimSchema,
   CodeAnchorSchema,
@@ -11,6 +12,7 @@ import {
   EvidenceSchema,
   ProjectSchema,
   TaskSchema,
+  type AgentEvent,
   type Attempt,
   type Claim,
   type CodeAnchor,
@@ -44,6 +46,7 @@ export type EvidenceInput = Omit<Evidence, 'id'>;
 export type CodeAnchorInput = Omit<CodeAnchor, 'id'>;
 export type ExerciseInput = Omit<Exercise, 'id'>;
 export type AttemptInput = Omit<Attempt, 'id'>;
+export type AgentEventInput = Omit<AgentEvent, 'id'>;
 /** 重定位/状态变更时可更新的字段子集。 */
 export type CodeAnchorPatch = Partial<
   Pick<CodeAnchor, 'filePath' | 'startLine' | 'endLine' | 'contentHash' | 'commitSha' | 'status'>
@@ -189,6 +192,28 @@ function rowToAnchor(row: AnchorRow): CodeAnchor {
     status: row.status,
     origin: row.origin,
     anchoredAt: row.anchored_at,
+  });
+}
+
+interface EventRow {
+  id: string;
+  session_id: string;
+  agent: string;
+  type: string;
+  payload: string;
+  task_id: string | null;
+  occurred_at: string;
+}
+
+function rowToEvent(row: EventRow): AgentEvent {
+  return AgentEventSchema.parse({
+    id: row.id,
+    sessionId: row.session_id,
+    agent: row.agent,
+    type: row.type,
+    payload: JSON.parse(row.payload) as Record<string, unknown>,
+    taskId: row.task_id ?? undefined,
+    occurredAt: row.occurred_at,
   });
 }
 
@@ -639,6 +664,33 @@ export class CodeMentorStorage {
       .prepare('SELECT * FROM attempts WHERE exercise_id = ? ORDER BY submitted_at')
       .all(exerciseId) as AttemptRow[];
     return rows.map(rowToAttempt);
+  }
+
+  createAgentEvent(input: AgentEventInput): AgentEvent {
+    const event = AgentEventSchema.parse({ ...input, id: `evt_${randomUUID()}` });
+    this.db
+      .prepare(
+        `INSERT INTO agent_events
+           (id, session_id, agent, type, payload, task_id, occurred_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      )
+      .run(
+        event.id,
+        event.sessionId,
+        event.agent,
+        event.type,
+        JSON.stringify(event.payload),
+        event.taskId ?? null,
+        event.occurredAt,
+      );
+    return event;
+  }
+
+  listAgentEventsByTask(taskId: string): AgentEvent[] {
+    const rows = this.db
+      .prepare('SELECT * FROM agent_events WHERE task_id = ? ORDER BY occurred_at')
+      .all(taskId) as EventRow[];
+    return rows.map(rowToEvent);
   }
 
   listAttemptsByDecision(decisionId: string): Attempt[] {

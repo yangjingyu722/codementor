@@ -19,6 +19,10 @@ export default defineConfig({
       '@codementor/learning-engine': fileURLToPath(
         new URL('./packages/learning-engine/src/index.ts', import.meta.url),
       ),
+      '@codementor/mcp': fileURLToPath(new URL('./packages/mcp/src/index.ts', import.meta.url)),
+      '@codementor/opencode-adapter': fileURLToPath(
+        new URL('./packages/opencode-adapter/src/index.ts', import.meta.url),
+      ),
       '@codementor/vscode/client': fileURLToPath(
         new URL('./apps/vscode/src/client/api-client.ts', import.meta.url),
       ),

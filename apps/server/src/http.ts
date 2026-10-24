@@ -202,6 +202,38 @@ const ROUTES: Route[] = [
     segments: ['api', 'exercises', ':id', 'attempts'],
     handler: (ctx) => requireLearning(ctx).submitAttempt(requireParam(ctx, 'id'), ctx.body),
   },
+  {
+    method: 'POST',
+    segments: ['api', 'events'],
+    handler: (ctx) => {
+      const body = (ctx.body ?? {}) as Record<string, unknown>;
+      const rootPath = typeof body['projectRoot'] === 'string' ? body['projectRoot'] : '';
+      if (rootPath.length === 0) {
+        throw new HttpError(400, 'VALIDATION', 'body requires projectRoot');
+      }
+      const project = ctx.engine.findProjectByRootPath(rootPath);
+      if (project === undefined) {
+        throw new HttpError(404, 'NOT_FOUND', `no project registered for rootPath ${rootPath}`);
+      }
+      // 关联到该项目最新的进行中任务（可能为空——降级场景允许无任务事件）
+      const tasks = ctx.engine.getProjectTasks(project.id);
+      const activeTask = tasks.filter((t) => t.status === 'active').at(-1);
+      return ctx.engine.createAgentEvent({
+        sessionId: typeof body['sessionId'] === 'string' ? body['sessionId'] : 'unknown',
+        agent: body['agent'],
+        type: body['type'],
+        payload: body['payload'],
+        taskId: activeTask?.id,
+        occurredAt:
+          typeof body['occurredAt'] === 'string' ? body['occurredAt'] : new Date().toISOString(),
+      });
+    },
+  },
+  {
+    method: 'GET',
+    segments: ['api', 'tasks', ':id', 'events'],
+    handler: (ctx) => ctx.engine.listTaskEvents(requireParam(ctx, 'id')),
+  },
 ];
 
 function requireParam(ctx: HandlerContext, name: string): string {

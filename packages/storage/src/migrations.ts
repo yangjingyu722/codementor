@@ -131,6 +131,23 @@ export const MIGRATIONS: readonly Migration[] = [
       CREATE INDEX idx_attempts_exercise ON attempts(exercise_id);
     `,
   },
+  {
+    id: 4,
+    name: '0004_agent_events',
+    up: `
+      CREATE TABLE agent_events (
+        id          TEXT PRIMARY KEY,
+        session_id  TEXT NOT NULL,
+        agent       TEXT NOT NULL CHECK (agent IN ('opencode','codex','claude-code','generic')),
+        type        TEXT NOT NULL CHECK (type IN
+                    ('session_start','session_end','tool_call','file_edit','test_run','message','other')),
+        payload     TEXT NOT NULL DEFAULT '{}',
+        task_id     TEXT REFERENCES tasks(id),
+        occurred_at TEXT NOT NULL
+      );
+      CREATE INDEX idx_agent_events_task ON agent_events(task_id);
+    `,
+  },
 ];
 
 /** 幂等迁移：未应用的迁移按序在事务中执行并登记。 */

@@ -1,5 +1,6 @@
 export { CodeMentorStorage, StorageError } from './storage.js';
 export type {
+  AgentEventInput,
   AttemptInput,
   ClaimInput,
   CodeAnchorInput,
