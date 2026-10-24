@@ -24,6 +24,7 @@ interface Seeded {
 
 let seeded: Seeded | undefined;
 let ext: vscode.Extension<Record<string, unknown>>;
+let restartHandle: ReturnType<typeof spawn> | undefined;
 
 function waitFile(file: string, timeoutMs: number): Promise<void> {
   return new Promise((resolve, reject) => {
@@ -130,14 +131,11 @@ describe('CodeMentor 扩展（真实 VS Code + 真实核心服务）', function 
   });
 
   after(async function () {
-    const server = seeded?.server;
-    if (server === undefined) {
-      return;
-    }
-    if (server.exitCode === null) {
+    for (const server of [seeded?.server, restartHandle]) {
+      if (server === undefined || server.exitCode !== null) {
+        continue;
+      }
       server.kill();
-    }
-    if (server.exitCode === null) {
       await Promise.race([
         new Promise<void>((resolve) => server.once('exit', () => resolve())),
         new Promise<void>((resolve) => setTimeout(resolve, 5000)),
@@ -223,7 +221,9 @@ describe('CodeMentor 扩展（真实 VS Code + 真实核心服务）', function 
     );
   });
 
-  it('服务停止后决策树明确提示离线', async function () {
+  it('服务停止后决策树明确提示离线，随后恢复服务', async function () {
+    const nodeBin = process.env['CODEMENTOR_TEST_NODE'] ?? 'node';
+    const stateFile = path.join(serviceHome, 'server.json');
     seeded!.server.kill();
     await new Promise<void>((resolve) => seeded!.server.once('exit', () => resolve()));
     (ext.exports.loader as { invalidate(): void }).invalidate();
@@ -233,5 +233,89 @@ describe('CodeMentor 扩展（真实 VS Code + 真实核心服务）', function 
     const roots = await tree.getChildren();
     assert.strictEqual(roots[0]!.kind, 'info');
     assert.strictEqual((roots[0] as { label: string }).label, '核心服务未连接');
+
+    // Windows 下 kill 不运行服务的退出清理，手动移除发现文件后重启
+    fs.rmSync(stateFile, { force: true });
+    restartHandle = spawn(nodeBin, [serverEntry], {
+      env: { ...process.env, CODEMENTOR_HOME: serviceHome },
+      stdio: ['ignore', 'ignore', 'pipe'],
+    });
+    await new Promise<void>((resolve, reject) => {
+      const started = Date.now();
+      const timer = setInterval(() => {
+        if (fs.existsSync(stateFile)) {
+          clearInterval(timer);
+          resolve();
+        } else if (Date.now() - started > 20000) {
+          clearInterval(timer);
+          reject(new Error('restart timed out'));
+        }
+      }, 100);
+    });
+    (ext.exports.loader as { invalidate(): void }).invalidate();
+  });
+
+  it('学习：开始学习生成会话（幂等，answerKey 不下发）', async function () {
+    const detail = ext.exports.detail as unknown as { learningSessionsStarted: number };
+    const before = detail.learningSessionsStarted;
+    await Promise.race([
+      vscode.commands.executeCommand('codementor.startLearning', seeded!.decisionA),
+      new Promise((_r, reject) =>
+        setTimeout(() => reject(new Error('startLearning command hung >30s')), 30000),
+      ),
+    ]);
+    assert.ok(detail.learningSessionsStarted > before, 'learning session not started');
+
+    const client = ext.exports.client as unknown as {
+      getLearningSession(id: string): Promise<{
+        exercises: Array<{ id: string; type: string }>;
+        explanation: string;
+      }>;
+    };
+    const session = await client.getLearningSession(seeded!.decisionA);
+    assert.ok(session.exercises.length >= 1, 'no exercises generated');
+    const raw = JSON.stringify(session.exercises);
+    assert.ok(!raw.includes('answerKey'), 'answerKey leaked to client!');
+    assert.ok(session.explanation.length > 0, 'explanation empty');
+  });
+
+  it('学习：提交作答保存并恢复进度（rubric 确定性评分）', async function () {
+    const client = ext.exports.client as unknown as {
+      getLearningSession(id: string): Promise<{
+        exercises: Array<{
+          id: string;
+          type: string;
+          attempts: Array<{ outcome: string; level: number }>;
+        }>;
+        completedExerciseIds: string[];
+        recommendedLevel: number;
+      }>;
+      submitAttempt(
+        exerciseId: string,
+        input: { answer: string; level: 1 | 2 | 3 },
+      ): Promise<{ attempt: { outcome: string; level: number } }>;
+    };
+    const session = await client.getLearningSession(seeded!.decisionA);
+    const transfer = session.exercises.find((e) => e.type === 'open_explanation');
+    assert.ok(transfer !== undefined, 'transfer exercise missing');
+    const before = transfer.attempts.length;
+
+    const wrong = await client.submitAttempt(transfer.id, {
+      answer: '随便写一句无关的话。',
+      level: 1,
+    });
+    assert.strictEqual(wrong.attempt.outcome, 'fail');
+
+    const res = await client.submitAttempt(transfer.id, {
+      answer: '栈帧内联保存符合可抢占调度要求完整现场的要求',
+      level: 2,
+    });
+    assert.strictEqual(res.attempt.outcome, 'pass');
+
+    const after = await client.getLearningSession(seeded!.decisionA);
+    const t2 = after.exercises.find((e) => e.type === 'open_explanation')!;
+    assert.strictEqual(t2.attempts.length, before + 2);
+    assert.ok(after.completedExerciseIds.includes(transfer.id), 'progress not restored');
+    assert.strictEqual(after.recommendedLevel, 3);
   });
 });

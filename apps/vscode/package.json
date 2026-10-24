@@ -56,6 +56,11 @@
         "category": "CodeMentor"
       },
       {
+        "command": "codementor.startLearning",
+        "title": "开始学习",
+        "category": "CodeMentor"
+      },
+      {
         "command": "codementor.revalidateAnchors",
         "title": "重新验证锚点",
         "category": "CodeMentor",

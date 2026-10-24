@@ -139,29 +139,37 @@
 
 存在意义：原始事件是观察类证据的上游；统一 schema 使核心层无需了解各 Agent 的私有格式（厂商中立的第一道防线）。
 
-### 2.8 Exercise —— 从决策派生的练习
+### 2.8 Exercise（阶段 5 扩展）—— 从真实决策派生的学习练习
 
-| 字段          | 类型      | 约束                                                                    |
-| ------------- | --------- | ----------------------------------------------------------------------- |
-| id            | string    | 非空，主键                                                              |
-| decisionId    | string    | 外键；练习必须可追溯到源决策                                            |
-| type          | enum      | `explain_choice / predict_impact / alternative_tradeoff / design_drill` |
-| prompt        | string    | 非空                                                                    |
-| focusClaimIds | string[]  | default `[]`；重点考察的主张                                            |
-| createdAt     | timestamp | UTC ISO                                                                 |
+| 字段          | 类型      | 约束                                                                                                                      |
+| ------------- | --------- | ------------------------------------------------------------------------------------------------------------------------- |
+| id            | string    | 非空，主键                                                                                                                |
+| decisionId    | string    | 外键；练习必须可追溯到源决策                                                                                              |
+| type          | enum      | `explain_choice / predict_impact / alternative_tradeoff / design_drill / predict_choice / locate_code / open_explanation` |
+| flowStep      | enum      | `predict / verify / transfer`（学习流程位置）                                                                             |
+| prompt        | string    | 非空；模板由真实决策数据填充                                                                                              |
+| options       | string[]  | default `[]`；MCQ 选项（predict_choice 使用，含真实备选与所选方案）                                                       |
+| hints         | string[]  | default `[]`；渐进式提示（Level 1 全部 / Level 2 首条 / Level 3 无），内容来自真实数据                                    |
+| answerKey     | union?    | `choice{correctIndex} / locate{filePath,symbolName} / rubric{keywords,minMatches}`；**只存服务端，会话视图剥离**          |
+| focusClaimIds | string[]  | default `[]`；重点考察的主张                                                                                              |
+| createdAt     | timestamp | UTC ISO                                                                                                                   |
 
-### 2.9 Attempt —— 作答记录
+内容红线（ADR-0008）：题目/提示/解释/反馈全部派生自真实 Decision/Claim/CodeAnchor/Evidence；缺锚点→无定位题、缺备选→无选择题、无主张→拒绝生成。
 
-| 字段        | 类型      | 约束                                                   |
-| ----------- | --------- | ------------------------------------------------------ |
-| id          | string    | 非空，主键                                             |
-| exerciseId  | string    | 外键                                                   |
-| answer      | string    | 非空                                                   |
-| outcome     | enum      | `ungraded / pass / partial / fail`，default `ungraded` |
-| feedback    | string    | default `''`                                           |
-| submittedAt | timestamp | UTC ISO                                                |
+### 2.9 Attempt（阶段 5 扩展）—— 作答记录
 
-存在意义：学习效果必须可度量。Attempt 历史 + 决策覆盖情况是"我是否真的在成长"的客观依据。
+| 字段        | 类型      | 约束                                                                                      |
+| ----------- | --------- | ----------------------------------------------------------------------------------------- |
+| id          | string    | 非空，主键                                                                                |
+| exerciseId  | string    | 外键                                                                                      |
+| answer      | string    | 非空                                                                                      |
+| outcome     | enum      | `ungraded / pass / partial / fail`，default `ungraded`                                    |
+| feedback    | string    | default `''`；必须引用真实工程信息                                                        |
+| level       | int       | `1/2/3`（完整引导/提示式/独立），default `2`                                              |
+| gradedBy    | enum      | `deterministic / self / llm`，default `deterministic`；**llm 评分永不作为绝对正确的事实** |
+| submittedAt | timestamp | UTC ISO                                                                                   |
+
+存在意义：学习效果必须可度量。练习完成 ⇔ 存在 pass 作答（由 Attempt 派生，无独立进度实体）——重开插件/重启服务进度自然恢复。Attempt 历史 + 决策覆盖情况是"我是否真的在成长"的客观依据。
 
 ## 3. 实体关系
 

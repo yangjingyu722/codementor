@@ -12,6 +12,7 @@ export interface CodementorApi {
   lenses: DecisionCodeLensProvider;
   loader: ProjectDataLoader;
   client: ApiClient;
+  detail: DecisionDetailPanel;
   __test: { panelsOpened: number };
 }
 
@@ -78,6 +79,16 @@ export function activate(context: vscode.ExtensionContext): CodementorApi {
         );
       }
     }),
+    vscode.commands.registerCommand('codementor.startLearning', async (decisionId: string) => {
+      try {
+        await detail.show(decisionId, { autoStartLearning: true });
+        testState.panelsOpened += 1;
+      } catch (err) {
+        void vscode.window.showErrorMessage(
+          `无法开始学习：${err instanceof Error ? err.message : String(err)}`,
+        );
+      }
+    }),
     vscode.commands.registerCommand('codementor.revealAnchor', (anchor: CodeAnchor) =>
       revealAnchor(anchor),
     ),
@@ -130,7 +141,7 @@ export function activate(context: vscode.ExtensionContext): CodementorApi {
     }
   });
 
-  return { tree, lenses, loader, client, __test: testState };
+  return { tree, lenses, loader, client, detail, __test: testState };
 }
 
 /** 跳转到锚点指向的代码；失效关联给出明确提示（显示最后已知位置）。 */

@@ -8,6 +8,7 @@
       "@codementor/storage": ["packages/storage/src/index.ts"],
       "@codementor/decision-engine": ["packages/decision-engine/src/index.ts"],
       "@codementor/code-mapping": ["packages/code-mapping/src/index.ts"],
+      "@codementor/learning-engine": ["packages/learning-engine/src/index.ts"],
       "@codementor/vscode/client": ["apps/vscode/src/client/api-client.ts"]
     }
   },

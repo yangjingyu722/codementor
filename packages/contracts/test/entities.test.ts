@@ -86,6 +86,7 @@ const validExercise = {
   id: 'x1',
   decisionId: 'd1',
   type: 'explain_choice',
+  flowStep: 'transfer',
   prompt: '为什么选择启动时校验而不是惰性校验？',
   createdAt: '2026-01-03T00:00:00Z',
 };
@@ -180,5 +181,38 @@ describe('默认值', () => {
       false,
     );
     expect(CodeAnchorSchema.safeParse({ ...validAnchor, symbolPath: [] }).success).toBe(false);
+  });
+
+  it('Exercise/Attempt 阶段 5 增量字段：默认值与非法值', () => {
+    const mcq = ExerciseSchema.parse({
+      ...validExercise,
+      type: 'predict_choice',
+      flowStep: 'predict',
+      options: ['A', 'B'],
+      hints: ['提示一'],
+      answerKey: { kind: 'choice', correctIndex: 0 },
+    });
+    expect(mcq.hints).toEqual(['提示一']);
+    expect(mcq.answerKey).toEqual({ kind: 'choice', correctIndex: 0 });
+    expect(
+      ExerciseSchema.safeParse({
+        ...validExercise,
+        answerKey: { kind: 'choice', correctIndex: -1 },
+      }).success,
+    ).toBe(false);
+    expect(
+      ExerciseSchema.safeParse({
+        ...validExercise,
+        answerKey: { kind: 'rubric', keywords: [], minMatches: 1 },
+      }).success,
+    ).toBe(false);
+    expect(ExerciseSchema.safeParse({ ...validExercise, flowStep: 'problem' }).success).toBe(false);
+    expect(ExerciseSchema.safeParse({ ...validExercise, type: 'quiz_show' }).success).toBe(false);
+
+    const attempt = AttemptSchema.parse(validAttempt);
+    expect(attempt.level).toBe(2);
+    expect(attempt.gradedBy).toBe('deterministic');
+    expect(AttemptSchema.safeParse({ ...validAttempt, level: 4 }).success).toBe(false);
+    expect(AttemptSchema.safeParse({ ...validAttempt, gradedBy: 'oracle' }).success).toBe(false);
   });
 });

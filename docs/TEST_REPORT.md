@@ -100,6 +100,48 @@
 - CI 已在 GitHub 实际运行并通过：阶段 1（run 40067608847 / 40067863621）与**阶段 3（run 40071533849，提交 cf3ef8f，ubuntu-latest + Node 20）**——后者验证了 tree-sitter 0.22.4+0.23.4 的 Linux 预编译可用性，92/92 测试在 Linux 全绿。
 - 真实 OpenCode Agent 集成测试属阶段 2 范围，本阶段未涉及。
 
+## 阶段 5 验证记录（2026-10-24 追加）
+
+环境：Windows 10 x64 · Node v24.12.0 · VS Code 1.143.1
+
+| #   | 命令/步骤                                                                                     | 结果                                                                                                | 退出码 |
+| --- | --------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- | ------ |
+| 1   | `pnpm vitest run packages/learning-engine`（首次）                                            | 2 失败：依赖缺失（decision-engine 未声明）+ 级别推荐语义（改为"最近一次作答"）                      | 1      |
+| 2   | `pnpm vitest run packages/learning-engine`（修复后）                                          | **12/12 通过**（8 条测试要求逐项覆盖 + 幂等/rubric 三档/拒绝生成）                                  | 0      |
+| 3   | `pnpm vitest run tests/learning.http.test.ts tests/riscv-learning.acceptance.test.ts`（首次） | 多处失败：学习路由 python 静默替换未命中（404）、GET/POST 会话包裹不一致、盘符类问题（无）          | 1      |
+| 4   | 修复路由与包裹后重跑                                                                          | 剩 4 失败：定位题提示词示例泄漏（真实缺陷，改中性示例）+ rubric 弱答案期望错误（行为正确，修测试）  | 1      |
+| 5   | `pnpm test`（全量，首次）                                                                     | 2 失败：answerKey 键未真正剥离（`in` 检查）+ 连带的临时目录 EPERM                                   | 1      |
+| 6   | 解构剥离修复后 `pnpm test`                                                                    | **124/124 通过**（16 文件）                                                                         | 0      |
+| 7   | `pnpm test:vscode`（首次）                                                                    | 7/8：学习命令测试超时——`webview.postMessage` 的 Thenable 在 webview 未就绪时永不 settle（真实缺陷） | 1      |
+| 8   | postMessage 改 fire-and-forget 后                                                             | **8/8 全部通过**（7s）                                                                              | 0      |
+| 9   | `pnpm verify` 全链                                                                            | build→typecheck→lint→format→test 全绿                                                               | 0      |
+| 10  | `vsce package --no-dependencies`                                                              | 打包成功（12 文件，22.65 KB）                                                                       | 0      |
+
+### 学习功能测试明细（对照阶段测试要求）
+
+| 要求                        | 覆盖测试                                                          |
+| --------------------------- | ----------------------------------------------------------------- |
+| 1 根据真实决策创建学习任务  | learning.test「要求1」+ RISC-V 准备/生成步骤                      |
+| 2 答案正确时正常反馈        | 「要求2」（MCQ+定位 pass，反馈含真实方案名/位置）                 |
+| 3 答案错误时针对性解释      | 「要求3」（fail 反馈引用真实备选与真实文件位置）                  |
+| 4 缺少证据不生成虚假引用    | 「要求4」（无锚点→无定位题；解释不声称有证据）+ RISC-V Explain 步 |
+| 5 用户回答可靠保存          | 「要求5」（落库含 level/gradedBy）+ HTTP attempts                 |
+| 6 重开插件恢复进度          | 「要求6」（关库重开）+ RISC-V 服务重启步骤 + Extension Test       |
+| 7 任务与 Decision 正确关联  | 「要求7」（多决策互不串扰）                                       |
+| 8 不阻塞正常 Agent 开发流程 | 「要求8」（学习操作前后决策状态/完整性不变）+ HTTP 端点隔离用例   |
+
+### RISC-V 验收场景（端到端，真实数据）
+
+fixture：proc.h（struct context/pcb）、swtch.c（swtch，简化 C 表达 RISC-V 切换）、proc.c（scheduler）——真实 git 仓库 + 真实锚点。流程：问题呈现（真实 question）→ 方案判断先错后对（fail 反馈引用 callee-saved 真实取舍）→ 解释引用真实主张（无证据时明确不出现"已被支撑"）→ 定位 swtch/scheduler（错误反馈给出真实文件；Level 1 提示含真实位置）→ 独立解释练习（partial→pass，rubric 关键词全部来自真实记录）→ completed=true、recommendLevel=3 → **服务进程重启后进度完整恢复**。
+
+### 人工测试步骤（自动化覆盖：无）
+
+1. **学习区交互观感**：打开决策详情 → 点击"开始学习" → 三步卡片按序渲染；完成后卡片绿框 + "✓ 已通过"。
+2. **级别披露**：Level 1 时定位题显示三条提示（含真实文件位置）；Level 3 无提示。
+3. **查看代码证据**：Verify 步点击"查看代码证据" → 跳转到锚定符号行。
+4. **反馈颜色**：pass 绿 / partial 橙 / fail 红（--vscode-charts-* 主题变量）。
+5. **历史反馈恢复**：作答后关闭面板重新打开 → 最近反馈与完成状态仍在（数据层已有 Extension Test，DOM 呈现为人工项）。
+
 ## 阶段 4 验证记录（2026-10-24 追加）
 
 环境：Windows 10 x64 · Node v24.12.0 · VS Code 1.143.1（@vscode/test-electron 自动下载）· vsce 3.x

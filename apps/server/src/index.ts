@@ -2,6 +2,7 @@ import { randomBytes } from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import { MappingService } from '@codementor/code-mapping';
+import { LearningEngine } from '@codementor/learning-engine';
 import { DecisionEngine } from '@codementor/decision-engine';
 import { CodeMentorStorage } from '@codementor/storage';
 import { loadConfig } from './config.js';
@@ -24,9 +25,10 @@ export async function main(): Promise<void> {
   const storage = CodeMentorStorage.open(path.join(config.homeDir, 'codementor.db'));
   const engine = new DecisionEngine(storage);
   const mapping = new MappingService(storage);
+  const learning = new LearningEngine(storage);
   const token = randomBytes(32).toString('hex');
 
-  const running = await startHttpServer({ engine, mapping, token, port: config.port });
+  const running = await startHttpServer({ engine, mapping, learning, token, port: config.port });
   const stateFile = path.join(config.homeDir, 'server.json');
   fs.writeFileSync(
     stateFile,

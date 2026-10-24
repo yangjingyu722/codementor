@@ -50,6 +50,9 @@ importers:
       '@codementor/decision-engine':
         specifier: workspace:*
         version: link:../../packages/decision-engine
+      '@codementor/learning-engine':
+        specifier: workspace:*
+        version: link:../../packages/learning-engine
       '@codementor/storage':
         specifier: workspace:*
         version: link:../../packages/storage
@@ -128,6 +131,25 @@ importers:
       '@codementor/contracts':
         specifier: workspace:*
         version: link:../contracts
+      '@codementor/storage':
+        specifier: workspace:*
+        version: link:../storage
+      zod:
+        specifier: ^3.23.8
+        version: 3.25.76
+    devDependencies:
+      typescript:
+        specifier: ^5.6.3
+        version: 5.9.3
+
+  packages/learning-engine:
+    dependencies:
+      '@codementor/contracts':
+        specifier: workspace:*
+        version: link:../contracts
+      '@codementor/decision-engine':
+        specifier: workspace:*
+        version: link:../decision-engine
       '@codementor/storage':
         specifier: workspace:*
         version: link:../storage

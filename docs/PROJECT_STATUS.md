@@ -4,38 +4,40 @@
 
 ## 当前阶段
 
-**阶段 4：VS Code 插件实现 —— PASS（已实际验证，含真实 VS Code 集成测试）**
+**阶段 5：工程认知学习引擎 —— PASS（已实际验证，含 RISC-V 端到端验收与服务重启进度恢复）**
 
 ## 阶段完成情况
 
-| 阶段/任务                | 状态    | 说明                                                                                                                                                    |
-| ------------------------ | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 阶段 0 / 1 / 3           | PASS    | 已验收（提交 6f4dcd7 / cd8b592 / cf3ef8f，均经 GitHub CI 验证）                                                                                         |
-| 阶段 2                   | NOT_RUN | 经所有者调整顺延，待下达                                                                                                                                |
-| 阶段 4：插件基础         | PASS    | 激活/停用、server.json 发现 + token 连接、工作区识别（realpath 归一盘符大小写）、配置 codementor.homeDir、离线显式状态 + 状态栏提示、错误集中于用户命令 |
-| 阶段 4：决策导航树       | PASS    | Project → Task → Decision（→ Anchor 四层）；状态图标（暗/亮主题自适应）；点击决策开详情                                                                 |
-| 阶段 4：设计详情 Webview | PASS    | 问题/备选/最终选择/理由/关联代码/证据；**理由按认知来源三区分离**（declared/observed/rationalized 不混排）；CSP nonce；完整性页脚                       |
-| 阶段 4：源码双向关联     | PASS    | 决策 → 代码（Webview 按钮 + 树节点，reveal + 选中锚点行）；CodeLens（c/cpp）反向入口；missing/ambiguous 警示 + 最后已知位置                             |
-| 阶段 4：服务端配套       | PASS    | 3 个只读查询端点（lookup/tasks/anchors）——既有存储查询的透出，无新业务（ADR-0007）                                                                      |
-| 阶段 4：测试             | PASS    | Vitest 99/99（新增 ApiClient 5 + 端点 2）；**@vscode/test-electron 真实 VS Code 6/6**；vsce 打包成功（12 文件）                                         |
-| 阶段 4：文档             | PASS    | ADR-0007；LOCAL_API/ARCHITECTURE/README 更新；人工测试步骤见 TEST_REPORT                                                                                |
+| 阶段/任务            | 状态    | 说明                                                                                                                              |
+| -------------------- | ------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| 阶段 0 / 1 / 3 / 4   | PASS    | 已验收（6f4dcd7 / cd8b592 / cf3ef8f / ed7b0e2，前三者经 GitHub CI 验证）                                                          |
+| 阶段 2               | NOT_RUN | 经所有者调整顺延，待下达                                                                                                          |
+| 阶段 5：学习任务模型 | PASS    | Exercise（flowStep/options/hints/answerKey）+ Attempt（level/gradedBy）；存储 0003 迁移（学习表与决策表分离）                     |
+| 阶段 5：教学内容生成 | PASS    | 确定性模板：predict_choice/locate_code/open_explanation 全部派生自真实数据；缺锚点→跳过定位题；无主张→拒绝生成（不造假）          |
+| 阶段 5：渐进式学习   | PASS    | 三级学习（1 完整引导/2 提示式/3 独立）；提示按级别披露；recommendLevel 由最近作答派生                                             |
+| 阶段 5：反馈机制     | PASS    | 选择/定位/rubric 三类确定性评分；gradedBy 记录评分来源（llm 永不作事实）；反馈引用真实备选/锚点/要点                              |
+| 阶段 5：VS Code 交互 | PASS    | 详情页学习区：开始学习/方案判断/查看解释/查看代码证据/提交练习/查看反馈；源码导航不受影响（原 8 项扩展测试全绿）                  |
+| 阶段 5：测试         | PASS    | Vitest **124/124**（新增 learning 12 + HTTP 5 + RISC-V 验收 7 + 契约 1）；Extension Tests **8/8**（新增学习 2 项）；vsce 打包通过 |
+| 阶段 5：文档         | PASS    | ADR-0008；CONTRACTS 2.8/2.9 扩展；LOCAL_API 学习路由；架构/README 更新                                                            |
 
 ## 仓库内包状态
 
-| 包                       | 职责                            | 构建                  | 测试                     |
-| ------------------------ | ------------------------------- | --------------------- | ------------------------ |
-| packages/contracts       | 数据契约 + 完整性规则           | PASS                  | PASS                     |
-| packages/storage         | SQLite 持久化 + 迁移            | PASS                  | PASS                     |
-| packages/decision-engine | 决策工作流业务规则              | PASS                  | PASS                     |
-| packages/code-mapping    | 解析/Git/锚定引擎               | PASS                  | PASS                     |
-| apps/server              | 核心服务宿主（15 端点）         | PASS                  | PASS                     |
-| apps/vscode              | 扩展视图层（零运行时依赖，CJS） | PASS（vsce 打包通过） | PASS（真实 VS Code 6/6） |
+| 包                       | 职责                                  | 构建              | 测试                     |
+| ------------------------ | ------------------------------------- | ----------------- | ------------------------ |
+| packages/contracts       | 数据契约 + 完整性规则（学习字段扩展） | PASS              | PASS（30）               |
+| packages/storage         | SQLite 持久化 + 迁移（0001–0003）     | PASS              | PASS                     |
+| packages/decision-engine | 决策工作流业务规则                    | PASS              | PASS                     |
+| packages/code-mapping    | 解析/Git/锚定引擎                     | PASS              | PASS                     |
+| packages/learning-engine | 学习引擎（确定性生成 + 评分）         | PASS              | PASS（12）               |
+| apps/server              | 核心服务宿主（18 端点）               | PASS              | PASS                     |
+| apps/vscode              | 扩展视图层（含学习交互）              | PASS（vsce 打包） | PASS（真实 VS Code 8/8） |
 
 ## 本阶段发现并修复的问题
 
-1. **Windows 盘符大小写**：VS Code 将工作区 URI 规范化为小写盘符（`c:\`），与核心服务注册的 `C:\` 精确匹配失败 → 扩展判为未注册。修复：`fs.realpathSync.native` 还原真实大小写。
-2. **扩展宿主内 process.execPath 是 VS Code 自身**：测试套件内 spawn 服务须用真实 node 路径（经环境变量显式传递）。
-3. **`.vscode-test/`（1.1GB，test-electron 下载的 VS Code）未进 ignore 清单**：污染 git 状态并导致 ESLint OOM；已加入 .gitignore/.prettierignore/eslint ignores。
+1. **postMessage 挂起**：VS Code `webview.postMessage` 的 Thenable 在 webview 未就绪时可能永不 settle，await 它导致扩展测试 90s 超时；改为 fire-and-forget（`Promise.resolve(...).catch`，注意 Thenable 无 `.catch`）。
+2. **answerKey 剥离不彻底**：`{...exercise, answerKey: undefined}` 保留键（值 undefined），`in` 检查仍为 true；改为解构剥离（键真正消失）。测试中断引发的句柄泄漏（EPERM）一并消除。
+3. **Windows kill 不运行退出清理**：验收测试重启服务时残留 server.json 指向旧端口；测试显式清理发现文件。
+4. **定位题提示词含误导示例**：模板示例 "proc.c scheduler" 泄漏进所有定位题导致测试选题歧义；改为中性示例 "main.c main"。
 
 ## 阻塞问题
 
@@ -43,11 +45,11 @@
 
 ## 已知非阻塞事项
 
-1. 本地目录名 `SumaryList`（会话占用无法改名；无功能影响）。
-2. 扩展测试未接入 GitHub CI（需在 ubuntu 加 xvfb job；本轮以本地真实 VS Code 运行为准，接入留待阶段 6 CI 打磨）。
-3. 阶段 2 顺延；项目命名风险（阶段 6 决策）。
+1. 本地目录名 `SumaryList`（会话占用；无功能影响）。
+2. 阶段 3/4/5 提交未推送远端（cf3ef8f 已推，ed7b0e2 及本阶段待授权）。
+3. 阶段 2 顺延；扩展测试 CI 化（xvfb）与项目命名留待阶段 6。
 
 ## 进入下一阶段的条件
 
-- [x] 阶段 4 验收标准满足（见阶段报告）
-- [ ] 所有者确认阶段 4 验收；下达阶段 5（工程学习引擎）或阶段 2（MCP，经调整顺序）
+- [x] 阶段 5 验收标准满足（见阶段报告）
+- [ ] 所有者确认阶段 5 验收；下达阶段 6（完整集成与开源发布）或阶段 2（MCP，经调整顺序）

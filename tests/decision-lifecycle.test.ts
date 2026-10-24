@@ -124,6 +124,7 @@ describe('决策生命周期端到端契约流转', () => {
       id: 'ex-1',
       decisionId: decision.id,
       type: 'alternative_tradeoff',
+      flowStep: 'transfer',
       prompt: '若改用惰性校验，最晚会在什么场景下暴露坏配置？代价是什么？',
       focusClaimIds: [intentClaim.id],
       createdAt: '2026-10-21T00:00:00Z',

@@ -3,18 +3,22 @@ import fs from 'node:fs';
 import path from 'node:path';
 import Database from 'better-sqlite3';
 import {
+  AttemptSchema,
   ClaimSchema,
   CodeAnchorSchema,
   DecisionSchema,
+  ExerciseSchema,
   EvidenceSchema,
   ProjectSchema,
   TaskSchema,
+  type Attempt,
   type Claim,
   type CodeAnchor,
   type Decision,
   type DecisionAlternative,
   type DecisionStatus,
   type Evidence,
+  type Exercise,
   type Project,
   type Task,
   type TaskStatus,
@@ -38,6 +42,8 @@ export type DecisionInput = Omit<Decision, 'id'>;
 export type ClaimInput = Omit<Claim, 'id'>;
 export type EvidenceInput = Omit<Evidence, 'id'>;
 export type CodeAnchorInput = Omit<CodeAnchor, 'id'>;
+export type ExerciseInput = Omit<Exercise, 'id'>;
+export type AttemptInput = Omit<Attempt, 'id'>;
 /** 重定位/状态变更时可更新的字段子集。 */
 export type CodeAnchorPatch = Partial<
   Pick<CodeAnchor, 'filePath' | 'startLine' | 'endLine' | 'contentHash' | 'commitSha' | 'status'>
@@ -183,6 +189,58 @@ function rowToAnchor(row: AnchorRow): CodeAnchor {
     status: row.status,
     origin: row.origin,
     anchoredAt: row.anchored_at,
+  });
+}
+
+interface ExerciseRow {
+  id: string;
+  decision_id: string;
+  type: string;
+  flow_step: string;
+  prompt: string;
+  options: string;
+  hints: string;
+  answer_key: string | null;
+  focus_claim_ids: string;
+  created_at: string;
+}
+
+function rowToExercise(row: ExerciseRow): Exercise {
+  return ExerciseSchema.parse({
+    id: row.id,
+    decisionId: row.decision_id,
+    type: row.type,
+    flowStep: row.flow_step,
+    prompt: row.prompt,
+    options: JSON.parse(row.options) as string[],
+    hints: JSON.parse(row.hints) as string[],
+    answerKey: row.answer_key === null ? undefined : JSON.parse(row.answer_key),
+    focusClaimIds: JSON.parse(row.focus_claim_ids) as string[],
+    createdAt: row.created_at,
+  });
+}
+
+interface AttemptRow {
+  id: string;
+  exercise_id: string;
+  answer: string;
+  outcome: string;
+  feedback: string;
+  level: number;
+  graded_by: string;
+  submitted_at: string;
+}
+
+function rowToAttempt(row: AttemptRow): Attempt {
+  return AttemptSchema.parse({
+    id: row.id,
+    exerciseId: row.exercise_id,
+    answer: row.answer,
+    outcome: row.outcome,
+    feedback: row.feedback,
+    level: row.level,
+    gradedBy: row.graded_by,
+    submittedAt: row.submitted_at,
   });
 }
 
@@ -510,5 +568,87 @@ export class CodeMentorStorage {
         id,
       );
     return next;
+  }
+
+  // ---- Exercise / Attempt（学习引擎持久化）----
+
+  createExercise(input: ExerciseInput): Exercise {
+    this.getDecision(input.decisionId);
+    const exercise = ExerciseSchema.parse({ ...input, id: `ex_${randomUUID()}` });
+    this.db
+      .prepare(
+        `INSERT INTO exercises
+           (id, decision_id, type, flow_step, prompt, options, hints, answer_key, focus_claim_ids, created_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      )
+      .run(
+        exercise.id,
+        exercise.decisionId,
+        exercise.type,
+        exercise.flowStep,
+        exercise.prompt,
+        JSON.stringify(exercise.options),
+        JSON.stringify(exercise.hints),
+        exercise.answerKey === undefined ? null : JSON.stringify(exercise.answerKey),
+        JSON.stringify(exercise.focusClaimIds),
+        exercise.createdAt,
+      );
+    return exercise;
+  }
+
+  getExercise(id: string): Exercise {
+    const row = this.db.prepare('SELECT * FROM exercises WHERE id = ?').get(id) as
+      ExerciseRow | undefined;
+    if (row === undefined) {
+      throw new StorageError('NOT_FOUND', `exercise ${id} not found`);
+    }
+    return rowToExercise(row);
+  }
+
+  listExercisesByDecision(decisionId: string): Exercise[] {
+    const rows = this.db
+      .prepare('SELECT * FROM exercises WHERE decision_id = ? ORDER BY created_at')
+      .all(decisionId) as ExerciseRow[];
+    return rows.map(rowToExercise);
+  }
+
+  createAttempt(input: AttemptInput): Attempt {
+    this.getExercise(input.exerciseId);
+    const attempt = AttemptSchema.parse({ ...input, id: `att_${randomUUID()}` });
+    this.db
+      .prepare(
+        `INSERT INTO attempts
+           (id, exercise_id, answer, outcome, feedback, level, graded_by, submitted_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      )
+      .run(
+        attempt.id,
+        attempt.exerciseId,
+        attempt.answer,
+        attempt.outcome,
+        attempt.feedback,
+        attempt.level,
+        attempt.gradedBy,
+        attempt.submittedAt,
+      );
+    return attempt;
+  }
+
+  listAttemptsByExercise(exerciseId: string): Attempt[] {
+    const rows = this.db
+      .prepare('SELECT * FROM attempts WHERE exercise_id = ? ORDER BY submitted_at')
+      .all(exerciseId) as AttemptRow[];
+    return rows.map(rowToAttempt);
+  }
+
+  listAttemptsByDecision(decisionId: string): Attempt[] {
+    const rows = this.db
+      .prepare(
+        `SELECT a.* FROM attempts a
+         JOIN exercises e ON a.exercise_id = e.id
+         WHERE e.decision_id = ? ORDER BY a.submitted_at`,
+      )
+      .all(decisionId) as AttemptRow[];
+    return rows.map(rowToAttempt);
   }
 }

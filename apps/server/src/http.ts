@@ -4,6 +4,7 @@ import type { DecisionEngine } from '@codementor/decision-engine';
 import { isCodeMentorError } from '@codementor/decision-engine';
 import type { MappingService } from '@codementor/code-mapping';
 import { GitError } from '@codementor/code-mapping';
+import type { LearningEngine } from '@codementor/learning-engine';
 import { StorageError } from '@codementor/storage';
 import { SERVICE_NAME, SERVICE_VERSION } from './identity.js';
 
@@ -13,6 +14,8 @@ export interface HttpOptions {
   engine: DecisionEngine;
   /** 缺省时锚点相关路由返回 503（Phase 1 兼容形态）。 */
   mapping?: MappingService;
+  /** 缺省时学习相关路由返回 503（Phase 4 兼容形态）。 */
+  learning?: LearningEngine;
   token: string;
   /** 0 或缺省表示由操作系统分配。 */
   port?: number;
@@ -38,7 +41,15 @@ interface HandlerContext {
   query: URLSearchParams;
   engine: DecisionEngine;
   mapping?: MappingService;
+  learning?: LearningEngine;
   body: unknown;
+}
+
+function requireLearning(ctx: HandlerContext): LearningEngine {
+  if (ctx.learning === undefined) {
+    throw new HttpError(503, 'LEARNING_UNAVAILABLE', 'learning service not configured');
+  }
+  return ctx.learning;
 }
 
 interface Route {
@@ -175,6 +186,21 @@ const ROUTES: Route[] = [
     method: 'POST',
     segments: ['api', 'projects', ':id', 'anchors', 'revalidate'],
     handler: (ctx) => requireMapping(ctx).revalidateProject(requireParam(ctx, 'id')),
+  },
+  {
+    method: 'POST',
+    segments: ['api', 'decisions', ':id', 'learning'],
+    handler: (ctx) => requireLearning(ctx).generateSession(requireParam(ctx, 'id')),
+  },
+  {
+    method: 'GET',
+    segments: ['api', 'decisions', ':id', 'learning'],
+    handler: (ctx) => ({ session: requireLearning(ctx).getSession(requireParam(ctx, 'id')) }),
+  },
+  {
+    method: 'POST',
+    segments: ['api', 'exercises', ':id', 'attempts'],
+    handler: (ctx) => requireLearning(ctx).submitAttempt(requireParam(ctx, 'id'), ctx.body),
   },
 ];
 
@@ -339,6 +365,7 @@ export function startHttpServer(options: HttpOptions): Promise<RunningHttpServer
         query: url.searchParams,
         engine,
         mapping: options.mapping,
+        learning: options.learning,
         body,
       });
       sendJson(res, method === 'POST' ? 201 : 200, result ?? {});

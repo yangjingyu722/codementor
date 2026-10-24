@@ -97,6 +97,40 @@ export const MIGRATIONS: readonly Migration[] = [
       CREATE INDEX idx_anchors_symbol ON code_anchors(file_path, symbol_name);
     `,
   },
+  {
+    id: 3,
+    name: '0003_learning_exercises',
+    up: `
+      CREATE TABLE exercises (
+        id              TEXT PRIMARY KEY,
+        decision_id     TEXT NOT NULL REFERENCES decisions(id),
+        type            TEXT NOT NULL CHECK (type IN
+                        ('explain_choice','predict_impact','alternative_tradeoff','design_drill',
+                         'predict_choice','locate_code','open_explanation')),
+        flow_step       TEXT NOT NULL CHECK (flow_step IN ('predict','verify','transfer')),
+        prompt          TEXT NOT NULL,
+        options         TEXT NOT NULL DEFAULT '[]',
+        hints           TEXT NOT NULL DEFAULT '[]',
+        answer_key      TEXT,
+        focus_claim_ids TEXT NOT NULL DEFAULT '[]',
+        created_at      TEXT NOT NULL
+      );
+      CREATE INDEX idx_exercises_decision ON exercises(decision_id);
+
+      CREATE TABLE attempts (
+        id           TEXT PRIMARY KEY,
+        exercise_id  TEXT NOT NULL REFERENCES exercises(id),
+        answer       TEXT NOT NULL,
+        outcome      TEXT NOT NULL CHECK (outcome IN ('ungraded','pass','partial','fail')),
+        feedback     TEXT NOT NULL DEFAULT '',
+        level        INTEGER NOT NULL DEFAULT 2 CHECK (level IN (1,2,3)),
+        graded_by    TEXT NOT NULL DEFAULT 'deterministic'
+                     CHECK (graded_by IN ('deterministic','self','llm')),
+        submitted_at TEXT NOT NULL
+      );
+      CREATE INDEX idx_attempts_exercise ON attempts(exercise_id);
+    `,
+  },
 ];
 
 /** 幂等迁移：未应用的迁移按序在事务中执行并登记。 */

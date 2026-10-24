@@ -14,6 +14,7 @@
     "@codementor/code-mapping": "workspace:*",
     "@codementor/contracts": "workspace:*",
     "@codementor/decision-engine": "workspace:*",
+    "@codementor/learning-engine": "workspace:*",
     "@codementor/storage": "workspace:*",
     "zod": "^3.23.8"
   },

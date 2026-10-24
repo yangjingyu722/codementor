@@ -89,9 +89,35 @@ export interface DecisionDetail {
   integrity: IntegrityResult;
 }
 
+/** 学习会话视图（与 @codementor/learning-engine 的 LearningSessionView 对齐的最小面）。 */
+export interface LearningSessionView {
+  decision: { id: string; title: string; question: string; status: string; chosenOption: string };
+  explanation: string;
+  exercises: Array<{
+    id: string;
+    type: string;
+    flowStep: string;
+    prompt: string;
+    options: string[];
+    hints: string[];
+    focusClaimIds: string[];
+    createdAt: string;
+    attempts: Array<{
+      id: string;
+      outcome: string;
+      feedback: string;
+      level: number;
+      submittedAt: string;
+    }>;
+  }>;
+  completedExerciseIds: string[];
+  completed: boolean;
+  recommendedLevel: 1 | 2 | 3;
+}
+
 /**
  * 核心服务 HTTP 客户端（纯 Node，无 vscode 依赖，可被 Vitest 直接测试）。
- * 扩展只读：不提供任何写端点封装——写路径属于 Agent（MCP）与命令行。
+ * 扩展视图层的写路径仅限学习作答（submitAttempt）——决策与锚点仍然只读。
  */
 export class ApiClient {
   constructor(
@@ -217,6 +243,36 @@ export class ApiClient {
     return this.request<CodeAnchor[]>(
       'GET',
       `/api/projects/${encodeURIComponent(projectId)}/anchors`,
+    );
+  }
+
+  async getLearningSession(decisionId: string): Promise<LearningSessionView> {
+    const res = await this.request<{ session: LearningSessionView }>(
+      'GET',
+      `/api/decisions/${encodeURIComponent(decisionId)}/learning`,
+    );
+    return res.session;
+  }
+
+  async startLearningSession(decisionId: string): Promise<{
+    regenerated: boolean;
+    session: LearningSessionView;
+  }> {
+    return this.request('POST', `/api/decisions/${encodeURIComponent(decisionId)}/learning`);
+  }
+
+  async submitAttempt(
+    exerciseId: string,
+    input: { answer: string; level: 1 | 2 | 3 },
+  ): Promise<{
+    attempt: { id: string; outcome: string; feedback: string; level: number };
+    exerciseId: string;
+  }> {
+    return this.request(
+      'POST',
+      `/api/exercises/${encodeURIComponent(exerciseId)}/attempts`,
+      undefined,
+      input,
     );
   }
 

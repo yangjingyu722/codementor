@@ -25,6 +25,12 @@
 | GET  | /api/projects/:id/tasks               | —                                                                                                         | 200 Task[]                                    | 阶段 4：决策树第二层                                     |
 | GET  | /api/projects/:id/anchors             | —                                                                                                         | 200 CodeAnchor[]                              | 阶段 4：CodeLens 数据源                                  |
 | POST | /api/projects/:id/anchors/revalidate  | —                                                                                                         | 201 `{head, results[]}`                       | 重验证：符号优先重定位；ambiguous/missing 显式标记       |
+| POST | /api/decisions/:id/learning           | —                                                                                                         | 201 `{regenerated, session}`                  | 阶段 5：生成学习会话（幂等；answerKey 不下发）           |
+| GET  | /api/decisions/:id/learning           | —                                                                                                         | 200 `{session}`                               | 阶段 5：学习会话视图（进度/级别推荐由作答派生）          |
+| POST | /api/exercises/:id/attempts           | `{answer, level}`                                                                                         | 201 `{attempt, outcome, feedback}`            | 阶段 5：确定性评分并保存作答；反馈引用真实工程信息       |
+| POST | /api/decisions/:id/learning           | —                                                                                                         | 201 `{regenerated, session}`                  | 阶段 5：生成学习会话（幂等；answerKey 不下发）           |
+| GET  | /api/decisions/:id/learning           | —                                                                                                         | 200 `{session}`                               | 阶段 5：学习会话视图（进度/级别推荐由作答派生）          |
+| POST | /api/exercises/:id/attempts           | `{answer, level(1\|2\|3)}`                                                                                | 201 `{attempt, outcome, feedback}`            | 阶段 5：确定性评分并保存作答；反馈引用真实工程信息       |
 
 错误码 → HTTP：`VALIDATION`/`INVALID_JSON`→400、`UNAUTHORIZED`→401、`NOT_FOUND`→404、`METHOD_NOT_ALLOWED`→405、`INVALID_STATE`→409（含符号歧义）、`CONFLICT`→409、`INTEGRITY_VIOLATION`→422、`PAYLOAD_TOO_LARGE`→413、`MAPPING_UNAVAILABLE`→503、`GIT_ERROR`→500、`INTERNAL`→500。
 

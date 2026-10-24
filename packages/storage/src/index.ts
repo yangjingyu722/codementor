@@ -1,10 +1,12 @@
 export { CodeMentorStorage, StorageError } from './storage.js';
 export type {
+  AttemptInput,
   ClaimInput,
   CodeAnchorInput,
   CodeAnchorPatch,
   DecisionInput,
   EvidenceInput,
+  ExerciseInput,
   ProjectInput,
   TaskInput,
 } from './storage.js';
