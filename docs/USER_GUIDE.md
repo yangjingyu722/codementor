@@ -20,11 +20,15 @@ pnpm install
 pnpm build
 ```
 
-### 1.3 安装 VS Code 扩展
+### 1.3 打包并安装 VS Code 扩展
 
 ```bash
+pnpm package:vscode    # 产出 apps/vscode/dist/codementor-0.1.0.vsix
 code --install-extension apps/vscode/dist/codementor-0.1.0.vsix
 ```
+
+> 注意：`pnpm build` 只产出扩展的 JS（dist/），**不会**生成 vsix；vsix 必须由
+> `pnpm package:vscode` 打包。跳过这一步，安装命令会因文件不存在而失败。
 
 安装后活动栏出现 CodeMentor 图标。
 

@@ -4,7 +4,20 @@
 
 ## 当前阶段
 
-**阶段 6：完整集成测试与开源发布准备 —— PASS（已实际验证；v0.1.0 达到发布条件，发布动作待所有者批准）**
+**阶段 6：完整集成测试与开源发布准备 —— 复审整改完成（原判 FAIL：M1/M2；两项文档与治理修复已落地，待所有者复审转 PASS）**
+
+### 复审记录（2026-10-24）
+
+所有者复审判 FAIL，范围仅文档与治理（工程实质获公允确认）：
+
+- **M1（已修复）**：五处用户文档的快速开始引用了文档步骤不会产出的 vsix。修复：README（英/中）、
+  USER_GUIDE、DEMOS、RELEASE_NOTES、seed 脚本输出全部补 `pnpm package:vscode` 步骤
+  （USER_GUIDE 显式注明 build 不产出 vsix）；新增 `tests/vsix.smoke.test.ts` 按文档路径
+  真实执行 build → package → 校验 vsix 内容（含入口/图标条目），持续守护该路径。
+- **M2（已修复）**：PRD §4 与 v0.1.0 交付范围（无 F2/F3）不一致。修复：PRD §4 增加
+  "v0.1.0 交付范围裁定"（记录所有者的阶段顺序决策，F2/F3 顺延 v0.2、验收标准不变），
+  §8 增加"发布闸门一致性"约束（对外口径与裁定一致 + 文档命令可复现性由冒烟测试守护）。
+- 发布闸门保持所有者手中：v0.1.0 的 GitHub Release / Marketplace / 转公开仍未执行。
 
 ## 阶段完成情况
 
@@ -33,9 +46,10 @@
 
 ## 待所有者决定（发布闸门）
 
-1. **v0.1.0 发布**：Release Notes 草稿在 docs/RELEASE_NOTES_v0.1.0.md；**未经批准不发布** GitHub Release / VS Code Marketplace。
-2. 可见性：仓库当前私有，转公开待批准。
-3. 项目最终命名（codementor.io 相近风险，PRD §9）。
+1. **阶段 6 复审**：确认 M1/M2 整改后转 PASS。
+2. **v0.1.0 发布**：Release Notes 草稿在 docs/RELEASE_NOTES_v0.1.0.md；**未经批准不发布** GitHub Release / VS Code Marketplace。
+3. 可见性：仓库当前私有，转公开待批准。
+4. 项目最终命名（codementor.io 相近风险，PRD §9）。
 
 ## 下一步
 

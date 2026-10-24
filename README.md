@@ -27,6 +27,7 @@ You keep building with OpenCode, Codex, Claude Code or any AI coding agent. Code
 git clone https://github.com/yangjingyu722/codementor.git
 cd codementor
 pnpm install && pnpm build
+pnpm package:vscode                            # build the installable extension (vsix)
 pnpm --filter @codementor/server start        # terminal 1 — local core service
 code --install-extension apps/vscode/dist/codementor-0.1.0.vsix
 node demo/seed-demo.mjs                        # terminal 2 — load two demo projects
@@ -97,7 +98,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md). Architecture changes require an ADR. Run
 
 ### 快速开始
 
-见上方英文 "Try it" 区块；完整指南见 [docs/USER_GUIDE.md](docs/USER_GUIDE.md)，示例演示见 [docs/DEMOS.md](docs/DEMOS.md)。
+见上方英文 "Try it" 区块（含 `pnpm package:vscode` 打包扩展步骤）；完整指南见 [docs/USER_GUIDE.md](docs/USER_GUIDE.md)，示例演示见 [docs/DEMOS.md](docs/DEMOS.md)。
 
 ### 当前状态
 

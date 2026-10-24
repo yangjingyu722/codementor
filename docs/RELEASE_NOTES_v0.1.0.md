@@ -33,6 +33,7 @@ CodeMentor 把每个设计决策的"为什么"变成一等公民：编码前声�
 
 ```bash
 pnpm install && pnpm build
+pnpm package:vscode                             # 打包扩展 vsix
 pnpm --filter @codementor/server start          # 终端 1
 code --install-extension apps/vscode/dist/codementor-0.1.0.vsix
 node demo/seed-demo.mjs                          # 终端 2：装入两个示例工程

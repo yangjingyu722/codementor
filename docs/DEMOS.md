@@ -6,6 +6,7 @@
 
 ```bash
 pnpm install && pnpm build
+pnpm package:vscode                        # 产出可安装的扩展 vsix
 pnpm --filter @codementor/server start     # 终端 1：保持运行
 code --install-extension apps/vscode/dist/codementor-0.1.0.vsix
 ```

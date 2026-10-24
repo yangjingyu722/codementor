@@ -169,6 +169,7 @@ try {
 
 console.log('');
 console.log('下一步：');
-console.log('  1. 安装扩展：code --install-extension apps/vscode/dist/codementor-0.1.0.vsix');
-console.log('  2. 用 VS Code 打开 demo/demo-b-riscv-os（设置 codementor.homeDir 或使用默认目录）');
-console.log('  3. 侧栏 CodeMentor → 选择任务「实现上下文切换」→ 查看决策 → 开始学习');
+console.log('  1. 打包扩展：pnpm package:vscode');
+console.log('  2. 安装扩展：code --install-extension apps/vscode/dist/codementor-0.1.0.vsix');
+console.log('  3. 用 VS Code 打开 demo/demo-b-riscv-os（设置 codementor.homeDir 或使用默认目录）');
+console.log('  4. 侧栏 CodeMentor → 选择任务「实现上下文切换」→ 查看决策 → 开始学习');
