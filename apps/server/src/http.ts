@@ -2,12 +2,17 @@ import http from 'node:http';
 import { timingSafeEqual } from 'node:crypto';
 import type { DecisionEngine } from '@codementor/decision-engine';
 import { isCodeMentorError } from '@codementor/decision-engine';
+import type { MappingService } from '@codementor/code-mapping';
+import { GitError } from '@codementor/code-mapping';
+import { StorageError } from '@codementor/storage';
 import { SERVICE_NAME, SERVICE_VERSION } from './identity.js';
 
 const MAX_BODY_BYTES = 1024 * 1024;
 
 export interface HttpOptions {
   engine: DecisionEngine;
+  /** 缺省时锚点相关路由返回 503（Phase 1 兼容形态）。 */
+  mapping?: MappingService;
   token: string;
   /** 0 或缺省表示由操作系统分配。 */
   port?: number;
@@ -30,8 +35,24 @@ class HttpError extends Error {
 
 interface HandlerContext {
   params: Record<string, string>;
+  query: URLSearchParams;
   engine: DecisionEngine;
+  mapping?: MappingService;
   body: unknown;
+}
+
+interface Route {
+  method: 'GET' | 'POST';
+  segments: string[];
+  isPublic?: boolean;
+  handler: (ctx: HandlerContext) => unknown | Promise<unknown>;
+}
+
+function requireMapping(ctx: HandlerContext): MappingService {
+  if (ctx.mapping === undefined) {
+    throw new HttpError(503, 'MAPPING_UNAVAILABLE', 'code mapping service not configured');
+  }
+  return ctx.mapping;
 }
 
 interface Route {
@@ -97,6 +118,38 @@ const ROUTES: Route[] = [
     method: 'GET',
     segments: ['api', 'tasks', ':id', 'decisions'],
     handler: (ctx) => ctx.engine.listTaskDecisions(requireParam(ctx, 'id')),
+  },
+  {
+    method: 'POST',
+    segments: ['api', 'decisions', ':id', 'anchors'],
+    handler: (ctx) =>
+      requireMapping(ctx).createAnchor({
+        ...(ctx.body as Record<string, unknown>),
+        decisionId: requireParam(ctx, 'id'),
+      }),
+  },
+  {
+    method: 'GET',
+    segments: ['api', 'decisions', ':id', 'anchors'],
+    handler: (ctx) => requireMapping(ctx).listAnchors(requireParam(ctx, 'id')),
+  },
+  {
+    method: 'GET',
+    segments: ['api', 'symbols', 'lookup'],
+    handler: (ctx) => {
+      const mapping = requireMapping(ctx);
+      const filePath = ctx.query.get('filePath');
+      const symbol = ctx.query.get('symbol');
+      if (filePath === null || filePath.length === 0 || symbol === null || symbol.length === 0) {
+        throw new HttpError(400, 'VALIDATION', 'query requires filePath and symbol');
+      }
+      return { matches: mapping.findDecisionsForSymbol(filePath, symbol) };
+    },
+  },
+  {
+    method: 'POST',
+    segments: ['api', 'projects', ':id', 'anchors', 'revalidate'],
+    handler: (ctx) => requireMapping(ctx).revalidateProject(requireParam(ctx, 'id')),
   },
 ];
 
@@ -256,7 +309,13 @@ export function startHttpServer(options: HttpOptions): Promise<RunningHttpServer
       }
 
       const body = method === 'POST' ? await readJsonBody(req) : undefined;
-      const result = await matched.route.handler({ params: matched.params, engine, body });
+      const result = await matched.route.handler({
+        params: matched.params,
+        query: url.searchParams,
+        engine,
+        mapping: options.mapping,
+        body,
+      });
       sendJson(res, method === 'POST' ? 201 : 200, result ?? {});
     } catch (err) {
       if (err instanceof HttpError) {
@@ -267,6 +326,16 @@ export function startHttpServer(options: HttpOptions): Promise<RunningHttpServer
         sendJson(res, errorStatus(err.code), {
           error: { code: err.code, message: err.message, details: err.details },
         });
+        return;
+      }
+      if (err instanceof StorageError) {
+        const status = err.code === 'NOT_FOUND' ? 404 : 409;
+        sendJson(res, status, { error: { code: err.code, message: err.message } });
+        return;
+      }
+      if (err instanceof GitError) {
+        console.error('[codementor-core] git error:', err.message);
+        sendJson(res, 500, { error: { code: 'GIT_ERROR', message: err.message } });
         return;
       }
       console.error('[codementor-core] unhandled error:', err);

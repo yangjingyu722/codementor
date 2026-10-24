@@ -11,6 +11,7 @@
     "start": "node dist/index.js"
   },
   "dependencies": {
+    "@codementor/code-mapping": "workspace:*",
     "@codementor/contracts": "workspace:*",
     "@codementor/decision-engine": "workspace:*",
     "@codementor/storage": "workspace:*",

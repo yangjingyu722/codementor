@@ -4,11 +4,13 @@ import path from 'node:path';
 import Database from 'better-sqlite3';
 import {
   ClaimSchema,
+  CodeAnchorSchema,
   DecisionSchema,
   EvidenceSchema,
   ProjectSchema,
   TaskSchema,
   type Claim,
+  type CodeAnchor,
   type Decision,
   type DecisionAlternative,
   type DecisionStatus,
@@ -35,6 +37,11 @@ export type TaskInput = Omit<Task, 'id'>;
 export type DecisionInput = Omit<Decision, 'id'>;
 export type ClaimInput = Omit<Claim, 'id'>;
 export type EvidenceInput = Omit<Evidence, 'id'>;
+export type CodeAnchorInput = Omit<CodeAnchor, 'id'>;
+/** 重定位/状态变更时可更新的字段子集。 */
+export type CodeAnchorPatch = Partial<
+  Pick<CodeAnchor, 'filePath' | 'startLine' | 'endLine' | 'contentHash' | 'commitSha' | 'status'>
+>;
 
 interface ProjectRow {
   id: string;
@@ -143,6 +150,39 @@ function rowToEvidence(row: EvidenceRow): Evidence {
     producedBy: row.produced_by,
     contentRef: row.content_ref,
     summary: row.summary,
+  });
+}
+
+interface AnchorRow {
+  id: string;
+  decision_id: string;
+  file_path: string;
+  symbol_name: string;
+  symbol_path: string;
+  symbol_kind: string;
+  start_line: number;
+  end_line: number;
+  content_hash: string;
+  commit_sha: string;
+  status: string;
+  origin: string;
+  anchored_at: string;
+}
+
+function rowToAnchor(row: AnchorRow): CodeAnchor {
+  return CodeAnchorSchema.parse({
+    id: row.id,
+    decisionId: row.decision_id,
+    filePath: row.file_path,
+    symbolPath: JSON.parse(row.symbol_path) as string[],
+    symbolKind: row.symbol_kind,
+    startLine: row.start_line,
+    endLine: row.end_line,
+    contentHash: row.content_hash,
+    commitSha: row.commit_sha,
+    status: row.status,
+    origin: row.origin,
+    anchoredAt: row.anchored_at,
   });
 }
 
@@ -381,5 +421,94 @@ export class CodeMentorStorage {
       .prepare(`SELECT * FROM evidence WHERE id IN (${placeholders})`)
       .all(...ids) as EvidenceRow[];
     return rows.map(rowToEvidence);
+  }
+
+  // ---- CodeAnchor ----
+
+  createCodeAnchor(input: CodeAnchorInput): CodeAnchor {
+    this.getDecision(input.decisionId);
+    const anchor = CodeAnchorSchema.parse({ ...input, id: `anch_${randomUUID()}` });
+    this.db
+      .prepare(
+        `INSERT INTO code_anchors
+           (id, decision_id, file_path, symbol_name, symbol_path, symbol_kind,
+            start_line, end_line, content_hash, commit_sha, status, origin, anchored_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      )
+      .run(
+        anchor.id,
+        anchor.decisionId,
+        anchor.filePath,
+        anchor.symbolPath[anchor.symbolPath.length - 1]!,
+        JSON.stringify(anchor.symbolPath),
+        anchor.symbolKind,
+        anchor.startLine,
+        anchor.endLine,
+        anchor.contentHash,
+        anchor.commitSha,
+        anchor.status,
+        anchor.origin,
+        anchor.anchoredAt,
+      );
+    return anchor;
+  }
+
+  getCodeAnchor(id: string): CodeAnchor {
+    const row = this.db.prepare('SELECT * FROM code_anchors WHERE id = ?').get(id) as
+      AnchorRow | undefined;
+    if (row === undefined) {
+      throw new StorageError('NOT_FOUND', `code anchor ${id} not found`);
+    }
+    return rowToAnchor(row);
+  }
+
+  listCodeAnchorsByDecision(decisionId: string): CodeAnchor[] {
+    const rows = this.db
+      .prepare('SELECT * FROM code_anchors WHERE decision_id = ? ORDER BY anchored_at')
+      .all(decisionId) as AnchorRow[];
+    return rows.map(rowToAnchor);
+  }
+
+  /** 反向查询：同一文件内同名符号上的全部锚点（含失效锚点，交由上层解释状态）。 */
+  findAnchorsBySymbol(filePath: string, symbolName: string): CodeAnchor[] {
+    const rows = this.db
+      .prepare('SELECT * FROM code_anchors WHERE file_path = ? AND symbol_name = ?')
+      .all(filePath, symbolName) as AnchorRow[];
+    return rows.map(rowToAnchor);
+  }
+
+  listCodeAnchorsByProject(projectId: string): CodeAnchor[] {
+    const rows = this.db
+      .prepare(
+        `SELECT a.* FROM code_anchors a
+         JOIN decisions d ON a.decision_id = d.id
+         WHERE d.project_id = ?`,
+      )
+      .all(projectId) as AnchorRow[];
+    return rows.map(rowToAnchor);
+  }
+
+  /** 重定位/状态更新：合并补丁后整体重新过契约校验再落库。 */
+  updateCodeAnchor(id: string, patch: CodeAnchorPatch): CodeAnchor {
+    const existing = this.getCodeAnchor(id);
+    const next = CodeAnchorSchema.parse({ ...existing, ...patch });
+    this.db
+      .prepare(
+        `UPDATE code_anchors
+         SET file_path = ?, symbol_name = ?, start_line = ?, end_line = ?,
+             content_hash = ?, commit_sha = ?, status = ?
+         WHERE id = ?`,
+      )
+      .run(
+        next.filePath,
+        next.symbolPath[next.symbolPath.length - 1]!,
+        next.startLine,
+        next.endLine,
+        next.contentHash,
+        next.commitSha,
+        next.status,
+        id,
+      );
+    return next;
   }
 }

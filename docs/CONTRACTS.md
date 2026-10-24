@@ -84,18 +84,33 @@
 
 存在意义：决策的理由不是一整段话，而是可分别验证、可分别被证据反驳的原子命题。"启动更快"和"便于排查"必须拆开，因为它们的证据不同。
 
-### 2.5 CodeAnchor —— 决策到代码的稳定指针
+### 2.5 CodeAnchor（v0.2）—— 决策到代码的稳定指针
 
-| 字段                | 类型      | 约束                                            |
-| ------------------- | --------- | ----------------------------------------------- |
-| id                  | string    | 非空，主键                                      |
-| decisionId          | string    | 外键                                            |
-| filePath            | path      | 仓库相对路径                                    |
-| startLine / endLine | int       | 正整数，start ≤ end                             |
-| symbolPath          | string[]? | Tree-sitter 符号链，如 `["ConfigStore","load"]` |
-| commitSha           | sha1      | 锚定时的提交                                    |
+| 字段                | 类型      | 约束                                                      |
+| ------------------- | --------- | --------------------------------------------------------- |
+| id                  | string    | 非空，主键                                                |
+| decisionId          | string    | 外键                                                      |
+| filePath            | path      | 仓库相对路径（重定位可能更新，如跟随 git 重命名）         |
+| symbolPath          | string[]  | **必填**；符号链如 `["ConfigStore","load"]`，末位为定位键 |
+| symbolKind          | enum      | `function / struct / typedef / other`                     |
+| startLine / endLine | int       | 正整数，start ≤ end（最后已知位置；missing 时保留）       |
+| contentHash         | sha-256   | 符号源文本哈希（行尾归一 LF），检测内容漂移               |
+| commitSha           | sha1      | 锚定/最近一次确认时的 HEAD（版本信息）                    |
+| status              | enum      | `confirmed / ambiguous / missing`，default `confirmed`    |
+| origin              | enum      | `declared / inferred`（关联来源，见下）                   |
+| anchoredAt          | timestamp | 锚定时刻（服务端时钟）                                    |
 
-存在意义：行号会漂移，因此锚必须包含 commitSha（不变的事实）与 symbolPath（语义再定位依据）。VS Code 的 CodeLens 依赖它。
+存在意义与状态语义（详见 ADR-0006）：
+
+- **confirmed**：符号唯一解析成功，行范围与当前内容一致。
+- **ambiguous**：无法精确定位（条件编译同名多定义、语法错误、无解析器的扩展名）——不更新位置，绝不展示可能错误的位置。
+- **missing**：文件或符号已不存在——记录与最后已知位置保留，绝不删除、绝不凭空造符号、绝不做跨文件猜测式回退。
+
+关联来源：`declared`（Agent/人显式声明）与 `inferred`（自动匹配被接受后落库，展示必须标注）。自动提案（proposeAnchors）只产出候选、不落库。
+
+时间语义：本实体从不读取文件修改时间；版本信息只来自 git commit，时间只来自服务端时钟。
+
+认知三角的落点：**符号存在**=observed 事实（解析结果）；**决策↔符号关联**=anchor.origin 标注的判断；**设计理由推断**=Claim(origin=rationalized)。三层互不冒充。
 
 ### 2.6 Evidence —— 机器可核查的制品
 

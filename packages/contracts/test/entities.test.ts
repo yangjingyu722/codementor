@@ -63,10 +63,14 @@ const validAnchor = {
   id: 'a1',
   decisionId: 'd1',
   filePath: 'src/config.ts',
+  symbolPath: ['loadConfig'],
+  symbolKind: 'function',
   startLine: 10,
   endLine: 42,
-  symbolPath: ['loadConfig'],
+  contentHash: 'a'.repeat(64),
   commitSha: '0123456789abcdef0123456789abcdef01234567',
+  origin: 'declared',
+  anchoredAt: '2026-01-02T02:30:00Z',
 };
 
 const validEvent = {
@@ -165,5 +169,16 @@ describe('默认值', () => {
     });
     expect(attempt.outcome).toBe('ungraded');
     expect(attempt.feedback).toBe('');
+  });
+
+  it('CodeAnchor 默认 confirmed；v2 必填字段缺失被拒绝', () => {
+    const { status } = CodeAnchorSchema.parse(validAnchor);
+    expect(status).toBe('confirmed');
+    expect(CodeAnchorSchema.safeParse({ ...validAnchor, symbolKind: 'macro' }).success).toBe(false);
+    expect(CodeAnchorSchema.safeParse({ ...validAnchor, origin: 'guessed' }).success).toBe(false);
+    expect(CodeAnchorSchema.safeParse({ ...validAnchor, contentHash: 'nothex' }).success).toBe(
+      false,
+    );
+    expect(CodeAnchorSchema.safeParse({ ...validAnchor, symbolPath: [] }).success).toBe(false);
   });
 });

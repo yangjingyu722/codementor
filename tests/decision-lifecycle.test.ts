@@ -84,10 +84,14 @@ describe('决策生命周期端到端契约流转', () => {
     id: 'anch-1',
     decisionId: decision.id,
     filePath: 'src/config.ts',
+    symbolPath: ['loadConfig'],
+    symbolKind: 'function',
     startLine: 5,
     endLine: 30,
-    symbolPath: ['loadConfig'],
+    contentHash: 'b'.repeat(64),
     commitSha: 'a94a8fe5ccb19ba61c4c0873d391e987982fbbd3',
+    origin: 'declared',
+    anchoredAt: '2026-10-20T09:00:00Z',
   });
 
   it('声明 → 观察 → 验证 全链路完整性通过，可升级为 verified', () => {

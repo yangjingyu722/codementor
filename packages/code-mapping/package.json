@@ -1,0 +1,32 @@
+{
+  "name": "@codementor/code-mapping",
+  "version": "0.1.0",
+  "description": "CodeMentor 代码映射引擎：Tree-sitter 符号解析、Git 变更分析、决策锚定与失效检测",
+  "type": "module",
+  "license": "MIT",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@codementor/contracts": "workspace:*",
+    "@codementor/decision-engine": "workspace:*",
+    "@codementor/storage": "workspace:*",
+    "tree-sitter": "0.22.4",
+    "tree-sitter-c": "0.23.4"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3"
+  }
+}

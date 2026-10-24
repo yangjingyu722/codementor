@@ -6,8 +6,14 @@
     "paths": {
       "@codementor/contracts": ["packages/contracts/src/index.ts"],
       "@codementor/storage": ["packages/storage/src/index.ts"],
-      "@codementor/decision-engine": ["packages/decision-engine/src/index.ts"]
+      "@codementor/decision-engine": ["packages/decision-engine/src/index.ts"],
+      "@codementor/code-mapping": ["packages/code-mapping/src/index.ts"]
     }
   },
-  "include": ["tests/**/*.ts", "packages/*/test/**/*.ts", "vitest.config.ts"]
+  "include": [
+    "tests/**/*.ts",
+    "packages/*/test/**/*.ts",
+    "packages/code-mapping/src/types/**/*.d.ts",
+    "vitest.config.ts"
+  ]
 }

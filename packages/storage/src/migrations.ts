@@ -72,6 +72,31 @@ export const MIGRATIONS: readonly Migration[] = [
       );
     `,
   },
+  {
+    id: 2,
+    name: '0002_code_anchors',
+    up: `
+      CREATE TABLE code_anchors (
+        id           TEXT PRIMARY KEY,
+        decision_id  TEXT NOT NULL REFERENCES decisions(id),
+        file_path    TEXT NOT NULL,
+        symbol_name  TEXT NOT NULL,
+        symbol_path  TEXT NOT NULL,
+        symbol_kind  TEXT NOT NULL CHECK (symbol_kind IN ('function','struct','typedef','other')),
+        start_line   INTEGER NOT NULL,
+        end_line     INTEGER NOT NULL,
+        content_hash TEXT NOT NULL,
+        commit_sha   TEXT NOT NULL,
+        status       TEXT NOT NULL DEFAULT 'confirmed'
+                     CHECK (status IN ('confirmed','ambiguous','missing')),
+        origin       TEXT NOT NULL CHECK (origin IN ('declared','inferred')),
+        anchored_at  TEXT NOT NULL,
+        CHECK (start_line <= end_line)
+      );
+      CREATE INDEX idx_anchors_decision ON code_anchors(decision_id);
+      CREATE INDEX idx_anchors_symbol ON code_anchors(file_path, symbol_name);
+    `,
+  },
 ];
 
 /** 幂等迁移：未应用的迁移按序在事务中执行并登记。 */

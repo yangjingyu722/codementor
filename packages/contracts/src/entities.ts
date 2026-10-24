@@ -149,17 +149,48 @@ export const ClaimSchema = z.object({
 });
 export type Claim = z.infer<typeof ClaimSchema>;
 
-/** CodeAnchor：决策到代码位置的稳定指针（commit + 行号 + 可选符号路径）。 */
+/** 符号类别。other 兜底；新增语言时按需扩展枚举（伴随契约版本升级）。 */
+export const SymbolKindSchema = z.enum(['function', 'struct', 'typedef', 'other']);
+export type SymbolKind = z.infer<typeof SymbolKindSchema>;
+
+/**
+ * 定位状态：
+ * - confirmed: 符号唯一解析成功，行范围与当前内容一致
+ * - ambiguous: 无法精确定位（如条件编译产生多个同名符号、文件存在语法错误）
+ * - missing:   符号或文件已不存在；记录保留，绝不静默删除
+ */
+export const AnchorStatusSchema = z.enum(['confirmed', 'ambiguous', 'missing']);
+export type AnchorStatus = z.infer<typeof AnchorStatusSchema>;
+
+/**
+ * 关联来源（认知三角中的"关联判断"层）：
+ * - declared: Agent/人显式声明的关联
+ * - inferred: 自动匹配产生的关联，展示时必须标注，不得默认视为正确
+ */
+export const AnchorOriginSchema = z.enum(['declared', 'inferred']);
+export type AnchorOrigin = z.infer<typeof AnchorOriginSchema>;
+
+/**
+ * CodeAnchor（v0.2）：决策到代码位置的稳定指针。
+ * 行号基于锚定时的工作区内容；commitSha 记录锚定时的 HEAD（版本信息）；
+ * contentHash 是符号源文本（行尾归一为 LF）的 SHA-256，用于精确检测漂移。
+ * 本实体从不读取文件修改时间——时间语义只来自 git 版本与服务端时钟。
+ */
 export const CodeAnchorSchema = z
   .object({
     id: entityId,
     decisionId: entityId,
     filePath: repoRelativePath,
+    /** 符号链（如 ["ConfigStore","load"]），末位为主要定位键。 */
+    symbolPath: z.array(nonEmptyString).min(1),
+    symbolKind: SymbolKindSchema,
     startLine: z.number().int().positive(),
     endLine: z.number().int().positive(),
-    /** Tree-sitter 解析出的符号链，如 ["ConfigStore", "load"]；行号漂移时的二次定位依据。 */
-    symbolPath: z.array(nonEmptyString).optional(),
+    contentHash: z.string().regex(/^[0-9a-f]{64}$/, 'must be a sha-256 hex digest'),
     commitSha,
+    status: AnchorStatusSchema.default('confirmed'),
+    origin: AnchorOriginSchema,
+    anchoredAt: isoTimestamp,
   })
   .refine((anchor) => anchor.startLine <= anchor.endLine, {
     message: 'startLine must be <= endLine',

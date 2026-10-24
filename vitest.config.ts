@@ -13,6 +13,9 @@ export default defineConfig({
       '@codementor/decision-engine': fileURLToPath(
         new URL('./packages/decision-engine/src/index.ts', import.meta.url),
       ),
+      '@codementor/code-mapping': fileURLToPath(
+        new URL('./packages/code-mapping/src/index.ts', import.meta.url),
+      ),
     },
   },
   test: {

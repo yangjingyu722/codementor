@@ -14,16 +14,16 @@ CodeMentor 由三层构成：
 
 ## 2. 模块职责
 
-| 模块                                                     | 阶段 | 状态       | 职责                                                                         | 不负责                 |
-| -------------------------------------------------------- | ---- | ---------- | ---------------------------------------------------------------------------- | ---------------------- |
-| VS Code Extension (`apps/vscode`)                        | 4    | 骨架       | TreeView / CodeLens / Webview；与本地服务通信；把用户操作翻译成服务调用      | 任何业务规则、存储     |
-| Local Core Service (`apps/server`)                       | 1    | ✅         | 核心进程：装载引擎与存储、回环 HTTP + token 传输（ADR-0004）                 | UI、Agent 私有格式解析 |
-| MCP Agent Adapter (`packages/mcp`*)                      | 2    | 计划       | 把核心层能力暴露为 MCP 工具（mentor_* 五工具）；经核心服务 API 落库          | 决策规则本身           |
-| OpenCode Event Adapter                                   | 2    | 计划       | 订阅 OpenCode 事件，归一化为 AgentEvent                                      | 其他 Agent 的私有格式  |
-| Engineering Decision Engine (`packages/decision-engine`) | 1/5  | ✅（基础） | 决策生命周期管理；完整性规则 R1–R5（verify 前瞻检查）；declaredAt 服务端盖章 | 界面呈现               |
-| Code Mapping Engine                                      | 3    | 计划       | Git diff + Tree-sitter：解析变更 → 生成/校准 CodeAnchor                      | 决策语义               |
-| Learning Engine                                          | 5    | 计划       | 从决策生成练习；评阅作答                                                     | 出题之外的 AI 调用     |
-| SQLite Storage (`packages/storage`)                      | 1    | ✅         | better-sqlite3 持久化、索引、版本化迁移（ADR-0003）                          | 跨仓共享               |
+| 模块                                                     | 阶段 | 状态       | 职责                                                                                         | 不负责                 |
+| -------------------------------------------------------- | ---- | ---------- | -------------------------------------------------------------------------------------------- | ---------------------- |
+| VS Code Extension (`apps/vscode`)                        | 4    | 骨架       | TreeView / CodeLens / Webview；与本地服务通信；把用户操作翻译成服务调用                      | 任何业务规则、存储     |
+| Local Core Service (`apps/server`)                       | 1    | ✅         | 核心进程：装载引擎与存储、回环 HTTP + token 传输（ADR-0004）                                 | UI、Agent 私有格式解析 |
+| MCP Agent Adapter (`packages/mcp`*)                      | 2    | 计划       | 把核心层能力暴露为 MCP 工具（mentor_* 五工具）；经核心服务 API 落库                          | 决策规则本身           |
+| OpenCode Event Adapter                                   | 2    | 计划       | 订阅 OpenCode 事件，归一化为 AgentEvent                                                      | 其他 Agent 的私有格式  |
+| Engineering Decision Engine (`packages/decision-engine`) | 1/5  | ✅（基础） | 决策生命周期管理；完整性规则 R1–R5（verify 前瞻检查）；declaredAt 服务端盖章                 | 界面呈现               |
+| Code Mapping Engine (`packages/code-mapping`)            | 3    | ✅         | Tree-sitter 符号解析（C，可扩展）+ 只读 Git 分析；锚定/重定位/失效检测/提案（ADR-0005/0006） | 决策语义               |
+| Learning Engine                                          | 5    | 计划       | 从决策生成练习；评阅作答                                                                     | 出题之外的 AI 调用     |
+| SQLite Storage (`packages/storage`)                      | 1    | ✅         | better-sqlite3 持久化、索引、版本化迁移（ADR-0003）                                          | 跨仓共享               |
 
 \* 包路径以阶段 2 设计为准，此处先锁定职责。API 细节见 docs/LOCAL_API.md。
 

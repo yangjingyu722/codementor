@@ -64,7 +64,38 @@
 | 结果   | **全部成功**（56/56 测试通过，含 better-sqlite3 原生模块与真实子进程测试在 Linux 上通过）                                             |
 | 提示   | 非失败性弃用提示（actions 旧版运行时 / ubuntu 镜像迁移公告）；已升级 actions/checkout@v7、actions/setup-node@v7、pnpm/action-setup@v6 |
 
+## 阶段 3 验证记录（2026-10-24 追加）
+
+环境：Windows 10 x64 · Node v24.12.0 · pnpm 8.13.1 · tree-sitter 0.22.4 / tree-sitter-c 0.23.4（精确钉住）
+
+| #   | 命令/步骤                                                    | 结果                                                                      | 退出码 |
+| --- | ------------------------------------------------------------ | ------------------------------------------------------------------------- | ------ |
+| 1   | tree-sitter 兼容性探针（临时目录实测两对版本）               | 0.24.1 语法包运行时崩溃（ABI 不匹配）；0.23.4 通过                        | 见记录 |
+| 2   | `pnpm install`（新增 code-mapping 及原生依赖）               | 成功，预编译二进制无需编译器                                              | 0      |
+| 3   | `pnpm build`（首次）                                         | **失败**：SymbolInfo 导入源写错（1 处 TS2724）                            | 2      |
+| 4   | `pnpm build`（修复后）                                       | 成功：6 包产出 dist                                                       | 0      |
+| 5   | `pnpm typecheck`（首次）                                     | **失败**：环境声明未纳入根程序 + 测试漏导入 beforeAll                     | 2      |
+| 6   | `pnpm typecheck`（修复后）                                   | 全部通过                                                                  | 0      |
+| 7   | `pnpm lint`（两次修复未使用变量/导入后）                     | 0 错误 0 警告                                                             | 0      |
+| 8   | `pnpm test`（第 1 次）                                       | **12 失败**：Vitest ESM 互操作破坏 NAPI Language 对象（setLanguage 崩溃） | 1      |
+| 9   | `pnpm test`（第 2 次，改 createRequire 原生加载后）          | **仍 12 失败**：根因实为语法包版本配对错误（0.24.1 新绑定格式）           | 1      |
+| 10  | `pnpm test`（第 3 次，钉住 tree-sitter-c@0.23.4 后）         | **2 失败**（均为测试自身问题：提案断言名不副实、notes.md 未先创建）       | 1      |
+| 11  | `pnpm test`（第 4 次）                                       | **92 通过 / 0 失败 / 0 跳过**（12 文件，12.9s）                           | 0      |
+| 12  | `pnpm verify`（build→typecheck→lint→format:check→test 全链） | 全部通过                                                                  | 0      |
+
+### 新增测试明细（35 个，累计 92）
+
+| 文件                                           | 数量    | 覆盖                                                                                                                                                                             |
+| ---------------------------------------------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| packages/code-mapping/test/c-parser.test.ts    | 9       | 函数（含指针返回值）/结构体/typedef 提取、前置声明排除、同名跨文件、条件编译双定义、语法错误标记、空文件、注册表按扩展名路由                                                     |
+| packages/code-mapping/test/git-client.test.ts  | 5       | HEAD、变更识别（增/改/删/重命名 -M -z）、历史内容（含不存在）、diff hunk 行号                                                                                                    |
+| packages/code-mapping/test/mapping.test.ts     | 12      | 8 个规定场景（新增函数/修改函数/新增结构体/同名不同文件/位置移动/文件重命名/符号删除/语法错误）+ ambiguous 双定义 + 来源三角与提案不落库 + 路径穿越/未知类型拒绝 + 无 mtime 断言 |
+| tests/proc-acceptance.test.ts                  | 5       | 验收场景：找到 PCB 与 scheduler、行号精确、关联、反向查询、变更重定位与删除标 missing                                                                                            |
+| packages/contracts/test/entities.test.ts（增） | +2 用例 | CodeAnchor v0.2 默认值与非法枚举/哈希/空符号链拒绝                                                                                                                               |
+
+测试基础设施：每个场景独立临时 git 仓库（真实 git init/commit/mv）+ 独立 SQLite 文件；无 Mock。
+
 ## 说明与限制
 
-- CI 已在 GitHub 实际运行并通过（见上节）。
+- CI 已在 GitHub 实际运行并通过（阶段 1 提交，见上节）；阶段 3 提交暂未推送（推送需所有者授权），推送后 CI 将验证 tree-sitter 在 ubuntu/Node20 的 Linux 预编译可用性。
 - 真实 OpenCode Agent 集成测试属阶段 2 范围，本阶段未涉及。
