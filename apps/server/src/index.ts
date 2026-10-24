@@ -1,4 +1,68 @@
-/** 本地核心服务身份常量：由阶段 1 的进程引导与服务发现逻辑使用。 */
-export const SERVICE_NAME = 'codementor-core';
+import { randomBytes } from 'node:crypto';
+import fs from 'node:fs';
+import path from 'node:path';
+import { DecisionEngine } from '@codementor/decision-engine';
+import { CodeMentorStorage } from '@codementor/storage';
+import { loadConfig } from './config.js';
+import { startHttpServer } from './http.js';
+import { SERVICE_NAME, SERVICE_VERSION } from './identity.js';
 
-export const SERVICE_VERSION = '0.1.0';
+export { SERVICE_NAME, SERVICE_VERSION };
+
+/**
+ * 本地核心服务引导：
+ * 1. 解析配置（CODEMENTOR_HOME / CODEMENTOR_PORT）
+ * 2. 打开 SQLite（含迁移）
+ * 3. 启动回环 HTTP 并写入服务发现文件 server.json（端口 + 鉴权 token）
+ * 4. 信号驱动的优雅退出（关闭连接、清理 server.json）
+ */
+export async function main(): Promise<void> {
+  const config = loadConfig(process.env);
+  fs.mkdirSync(config.homeDir, { recursive: true });
+
+  const storage = CodeMentorStorage.open(path.join(config.homeDir, 'codementor.db'));
+  const engine = new DecisionEngine(storage);
+  const token = randomBytes(32).toString('hex');
+
+  const running = await startHttpServer({ engine, token, port: config.port });
+  const stateFile = path.join(config.homeDir, 'server.json');
+  fs.writeFileSync(
+    stateFile,
+    JSON.stringify(
+      {
+        service: SERVICE_NAME,
+        version: SERVICE_VERSION,
+        host: config.host,
+        port: running.port,
+        token,
+        pid: process.pid,
+        startedAt: new Date().toISOString(),
+      },
+      null,
+      2,
+    ),
+  );
+  console.log(
+    `[codementor-core] v${SERVICE_VERSION} listening on http://${config.host}:${running.port}`,
+  );
+  console.log(`[codementor-core] discovery file: ${stateFile}`);
+
+  const shutdown = (): void => {
+    try {
+      fs.rmSync(stateFile, { force: true });
+    } catch {
+      // 尽力清理即可
+    }
+    running.server.close(() => {
+      storage.close();
+      process.exit(0);
+    });
+  };
+  process.on('SIGINT', shutdown);
+  process.on('SIGTERM', shutdown);
+}
+
+void main().catch((err: unknown) => {
+  console.error('[codementor-core] fatal:', err);
+  process.exitCode = 1;
+});

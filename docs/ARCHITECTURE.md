@@ -14,18 +14,18 @@ CodeMentor 由三层构成：
 
 ## 2. 模块职责
 
-| 模块                                | 阶段 | 职责                                                                    | 不负责                 |
-| ----------------------------------- | ---- | ----------------------------------------------------------------------- | ---------------------- |
-| VS Code Extension (`apps/vscode`)   | 4    | TreeView / CodeLens / Webview；与本地服务通信；把用户操作翻译成服务调用 | 任何业务规则、存储     |
-| Local Core Service (`apps/server`)  | 1    | 核心进程：装载引擎与存储、暴露本地传输（扩展与服务均连接于此）          | UI、Agent 私有格式解析 |
-| MCP Agent Adapter (`packages/mcp`*) | 2    | 把核心层能力暴露为 MCP 工具（declare_decision 等）；校验 Agent 载荷     | 决策规则本身           |
-| OpenCode Event Adapter              | 2    | 订阅 OpenCode 事件，归一化为 AgentEvent                                 | 其他 Agent 的私有格式  |
-| Engineering Decision Engine         | 1/5  | 决策生命周期管理；执行完整性规则（R1–R5）；主张-证据关联                | 界面呈现               |
-| Code Mapping Engine                 | 3    | Git diff + Tree-sitter：解析变更 → 生成/校准 CodeAnchor                 | 决策语义               |
-| Learning Engine                     | 5    | 从决策生成练习；评阅作答                                                | 出题之外的 AI 调用     |
-| SQLite Storage                      | 1    | 持久化、索引、版本化迁移                                                | 跨仓共享               |
+| 模块                                                     | 阶段 | 状态       | 职责                                                                         | 不负责                 |
+| -------------------------------------------------------- | ---- | ---------- | ---------------------------------------------------------------------------- | ---------------------- |
+| VS Code Extension (`apps/vscode`)                        | 4    | 骨架       | TreeView / CodeLens / Webview；与本地服务通信；把用户操作翻译成服务调用      | 任何业务规则、存储     |
+| Local Core Service (`apps/server`)                       | 1    | ✅         | 核心进程：装载引擎与存储、回环 HTTP + token 传输（ADR-0004）                 | UI、Agent 私有格式解析 |
+| MCP Agent Adapter (`packages/mcp`*)                      | 2    | 计划       | 把核心层能力暴露为 MCP 工具（mentor_* 五工具）；经核心服务 API 落库          | 决策规则本身           |
+| OpenCode Event Adapter                                   | 2    | 计划       | 订阅 OpenCode 事件，归一化为 AgentEvent                                      | 其他 Agent 的私有格式  |
+| Engineering Decision Engine (`packages/decision-engine`) | 1/5  | ✅（基础） | 决策生命周期管理；完整性规则 R1–R5（verify 前瞻检查）；declaredAt 服务端盖章 | 界面呈现               |
+| Code Mapping Engine                                      | 3    | 计划       | Git diff + Tree-sitter：解析变更 → 生成/校准 CodeAnchor                      | 决策语义               |
+| Learning Engine                                          | 5    | 计划       | 从决策生成练习；评阅作答                                                     | 出题之外的 AI 调用     |
+| SQLite Storage (`packages/storage`)                      | 1    | ✅         | better-sqlite3 持久化、索引、版本化迁移（ADR-0003）                          | 跨仓共享               |
 
-\* 包路径以阶段 2 设计为准，此处先锁定职责。
+\* 包路径以阶段 2 设计为准，此处先锁定职责。API 细节见 docs/LOCAL_API.md。
 
 ## 3. 架构图
 
@@ -129,7 +129,7 @@ sequenceDiagram
 1. **契约优先**：`@codementor/contracts`（Zod schema + 完整性规则）是唯一被所有层共享的模块；跨模块数据必须先过契约校验。
 2. **认知来源不可自动升级**：`rationalized → declared` 的转换被系统禁止；只有带可信时间戳的新声明才产生 `declared` 记录。
 3. **进程边界**：VS Code 扩展崩溃不应影响核心服务；核心服务必须能在无扩展时被 Agent 独立使用（headless）。
-4. **本地传输**：扩展 ↔ 服务走本机回环 + 鉴权 token（阶段 1 细化）；不监听外网地址。
+4. **本地传输**：扩展/适配器 ↔ 服务走 `127.0.0.1` HTTP + Bearer token，端口与 token 经 `<CODEMENTOR_HOME>/server.json` 发现（ADR-0004）；不监听外网地址。
 
 ## 6. 阶段映射
 

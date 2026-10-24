@@ -23,7 +23,7 @@
 | 阶段 | 内容                                    | 状态 |
 | ---- | --------------------------------------- | ---- |
 | 0    | 需求设计、架构、数据契约、Monorepo 骨架 | ✅   |
-| 1    | 核心数据模型与本地服务                  | ⬜   |
+| 1    | 核心数据模型与本地服务                  | ✅   |
 | 2    | MCP 服务与 Agent 适配                   | ⬜   |
 | 3    | 源码分析与设计关联                      | ⬜   |
 | 4    | VS Code 插件                            | ⬜   |
@@ -35,11 +35,13 @@
 ```
 apps/
   vscode/            VS Code 扩展（阶段 4 实现）
-  server/            本地核心服务（阶段 1 实现）
+  server/            本地核心服务：回环 HTTP + token（已实现，见 docs/LOCAL_API.md）
 packages/
-  contracts/         数据契约：Zod schema + 完整性规则（已实现）
-docs/                PRD / 架构 / 契约 / ADR / 状态与测试报告
-tests/               根级集成测试
+  contracts/         数据契约：Zod schema + 完整性规则
+  storage/           SQLite 存储层：better-sqlite3 + 版本化迁移
+  decision-engine/   决策引擎：生命周期 + 完整性规则执行
+docs/                PRD / 架构 / 契约 / ADR / API / 状态与测试报告
+tests/               根级集成测试（HTTP / 子进程）
 ```
 
 ## 开发
@@ -48,7 +50,7 @@ tests/               根级集成测试
 
 ```bash
 pnpm install          # 安装依赖
-pnpm verify           # typecheck + lint + format:check + test + build
+pnpm verify           # build + typecheck + lint + format:check + test
 ```
 
 单项命令见根 `package.json` 的 `scripts`；CI（`.github/workflows/ci.yml`）执行与本地完全相同的链路。
