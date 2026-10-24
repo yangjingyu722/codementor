@@ -1,0 +1,19 @@
+{
+  "name": "@codementor/vscode",
+  "version": "0.1.0",
+  "description": "CodeMentor VS Code 扩展（UI 宿主：TreeView / CodeLens / Webview，阶段 4 实现）",
+  "type": "module",
+  "license": "MIT",
+  "main": "./dist/extension.js",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.90.0",
+    "typescript": "^5.6.3"
+  }
+}

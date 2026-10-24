@@ -1,0 +1,15 @@
+{
+  "name": "@codementor/server",
+  "version": "0.1.0",
+  "description": "CodeMentor 本地核心服务（存储 / 决策引擎 / MCP 宿主，阶段 1 起实现）",
+  "type": "module",
+  "license": "MIT",
+  "main": "./dist/index.js",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3"
+  }
+}
