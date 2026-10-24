@@ -54,6 +54,15 @@ afterAll(async () => {
   } catch {
     // 尽力清理
   }
+  // 种子脚本会 git init demo 目录（运行时产物）；测试后移除，
+  // 避免嵌套 .git 进入主仓库索引（gitlink 污染）
+  for (const demo of ['demo-a-simple-c', 'demo-b-riscv-os']) {
+    try {
+      rmSync(path.join(repoRoot, 'demo', demo, '.git'), { recursive: true, force: true });
+    } catch {
+      // 尽力清理
+    }
+  }
 });
 
 describe('demo/seed-demo.mjs（真实服务 + 真实脚本执行）', () => {
