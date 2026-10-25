@@ -131,9 +131,12 @@ extension and the MCP adapter are thin forwarders with no database access
 
 ## Quality
 
-- **147 Vitest tests** (23 files) + **8 real-VSCode extension tests** — real
+- **150 Vitest tests** (24 files) + **8 real-VSCode extension tests** — real
   processes, files, sockets and git repositories; no mocked integrations.
-  Statement coverage 90.3%.
+  Statement coverage 78.6% over `packages/*/src` + `apps/server/src`. The MCP
+  stdio transport runs as a spawned subprocess, outside v8 instrumentation —
+  it is covered by real-protocol integration tests instead
+  (see `tests/mcp.integration.test.ts`).
 - Full chain (`build -> typecheck -> lint -> format -> test`) green locally
   (Windows) and on GitHub CI (ubuntu, Node 20).
 - `pnpm audit --prod`: 0 known vulnerabilities.

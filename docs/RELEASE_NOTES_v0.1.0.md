@@ -43,7 +43,8 @@ node demo/seed-demo.mjs                          # 终端 2：装入两个示例
 ## 质量与验证
 
 - 150 项 Vitest（真实进程/文件/socket/git 仓库，无 Mock 冒充）+ 8 项真实 VS Code
-  扩展测试；语句覆盖率 90.3%。
+  扩展测试；语句覆盖率 78.6%（v8，`packages/*/src` + `apps/server/src`；MCP stdio
+  传输层以子进程运行、不计入插桩，由真实协议集成测试覆盖）。
 - `pnpm audit --prod`：0 已知漏洞。全链验证（build/typecheck/lint/format/test）
   在 Windows 本地与 GitHub CI（ubuntu + Node 20）双平台全绿。
 - 完整审计：[docs/QUALITY_AUDIT.md](QUALITY_AUDIT.md)（含"AI 事后编造理由"专项防线清单）。

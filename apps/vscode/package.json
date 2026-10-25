@@ -6,6 +6,10 @@
   "license": "MIT",
   "publisher": "codementor-dev",
   "private": true,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yangjingyu722/codementor.git"
+  },
   "main": "./dist/extension.js",
   "scripts": {
     "build": "tsc -p tsconfig.json",

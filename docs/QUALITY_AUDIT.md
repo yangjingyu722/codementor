@@ -4,8 +4,8 @@
 
 ## 1. 数据契约一致性
 
-- **方法**：docs/CONTRACTS.md 的字段表与 `packages/contracts/src/entities.ts` 的 Zod schema 逐实体对照；契约测试（30 项）含全部实体的合法样例与非法拒绝。
-- **结论**：一致。CodeAnchor v0.2 与 Exercise/Attempt 阶段 5 扩展均已同步文档。zod 4 迁移（`z.record` 显式键类型）后 131/131 测试通过。
+- **方法**：docs/CONTRACTS.md 的字段表与 `packages/contracts/src/entities.ts` 的 Zod schema 逐实体对照；契约测试（27 项）含全部实体的合法样例与非法拒绝。
+- **结论**：一致。CodeAnchor v0.2 与 Exercise/Attempt 阶段 5 扩展均已同步文档。zod 4 迁移（`z.record` 显式键类型）后全量测试通过（迁移时点 131/131；当前含阶段 2 共 150/150）。
 
 ## 2. 核心业务逻辑：**"AI 事后编造设计理由并显示为真实记录"防线**
 
@@ -82,8 +82,8 @@
 
 ## 12. 测试覆盖情况
 
-- 覆盖率（v8 provider，阶段 6 实测）：**语句 90.31% / 分支 84.73% / 函数 96.66%**（覆盖范围：packages/*/src + apps/server/src）。
-- 数量：131 Vitest（18 文件）+ 8 真实 VS Code 扩展测试。全部为真实进程/文件/socket 测试，无 Mock 冒充（时钟注入为 DI 设计）。
+- 覆盖率（v8 provider，发布前实测，含阶段 2 代码）：**语句 78.55% / 分支 83.73% / 函数 94.73%**（覆盖范围：packages/*/src + apps/server/src）。**口径说明**：MCP stdio 传输层以子进程方式运行，v8 无法插桩统计——该层由真实协议集成测试（tests/mcp.integration.test.ts 6/6，官方 SDK Client ↔ stdio 子进程）覆盖；阶段 6 时点（MCP 加入前）同口径为语句 90.31% / 分支 84.73% / 函数 96.66%。
+- 数量：150 Vitest（24 文件）+ 8 真实 VS Code 扩展测试。全部为真实进程/文件/socket 测试，无 Mock 冒充（时钟注入为 DI 设计）。
 
 ## 13. 遗留风险清单
 

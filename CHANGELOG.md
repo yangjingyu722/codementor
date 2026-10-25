@@ -40,7 +40,8 @@
   分区的详情 Webview、CodeLens 反向入口、跳转与失效警示、五步学习交互。
 - **示例工程**：Demo A（简单 C 工程）与 Demo B（简化 RISC-V 进程调度）+ 一键种子脚本。
 - **测试**：150 项 Vitest（真实进程/文件/socket，无 Mock 冒充）+ 8 项真实 VS Code 扩展测试；
-  语句覆盖率 90.3%。
+  语句覆盖率 78.6%（v8，`packages/*/src` + `apps/server/src`；MCP stdio 传输层以子进程
+  运行、不计入插桩，由真实协议集成测试覆盖）。
 - **文档**：中英双语 README、架构文档、数据契约、9 份 ADR、用户指南、Demo 指南、
   MCP 接入指南、质量审计报告、安全策略。
 
