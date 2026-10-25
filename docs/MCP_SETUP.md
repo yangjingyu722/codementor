@@ -12,24 +12,26 @@ node <仓库根>/packages/mcp/dist/main.js
 
 ## OpenCode
 
-1. 在项目（或全局 `~/.config/opencode/`）创建 `.opencode/plugins/codementor.mjs`：
+1. 在项目（或全局 `~/.config/opencode/`）创建 `.opencode/plugins/codementor.mjs`。
+   把下方的 `<repo-root>` 替换为你的 codementor 克隆根目录；`file:` URL 必须用正斜杠
+   （Windows 形如 `file:///C:/tools/codementor/...`）：
 
 ```js
-import { createCodementorPlugin } from 'file:///D:/skill/user/SumaryList/packages/opencode-adapter/dist/index.js';
+import { createCodementorPlugin } from 'file:///<repo-root>/packages/opencode-adapter/dist/index.js';
 
 export const Codementor = createCodementorPlugin({
   projectRoot: import.meta.dirname, // 仓库根目录（按需调整）
 });
 ```
 
-2. 在项目创建 `opencode.json`，注册 MCP：
+2. 在项目创建 `opencode.json`，注册 MCP（正斜杠在 Windows 上同样有效）：
 
 ```json
 {
   "mcp": {
     "codementor": {
       "type": "local",
-      "command": ["node", "D:\\skill\\user\\SumaryList\\packages\\mcp\\dist\\main.js"],
+      "command": ["node", "<repo-root>/packages/mcp/dist/main.js"],
       "enabled": true
     }
   }
