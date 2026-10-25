@@ -1,14 +1,25 @@
 # 项目状态
 
-更新日期：2026-10-24 · 状态标记：PASS / FAIL / BLOCKED / NOT_RUN
+更新日期：2026-10-25 · 状态标记：PASS / FAIL / BLOCKED / NOT_RUN
 
 ## 当前阶段
 
-**阶段 2：MCP 与 Agent 接入 —— PASS（2026-10-25 所有者终审通过）**
+**v0.1.0 已发布（2026-10-25）——https://github.com/yangjingyu722/codementor/releases/tag/v0.1.0**
 
 **项目全部七个阶段（0/1/2/3/4/5 + 6）验收通过；v0.1.0 功能面覆盖 PRD F1–F6 全部六项。**
-剩余工作：发布面文档同步（本轮已完成：PRD §4 裁定更新、Release Notes 同步、架构文档状态）
-与所有者发布动作（GitHub Release / Marketplace / 转公开 / 命名）。
+
+### 发布执行记录（2026-10-25）
+
+- 发布提交 `3505b2e`（发布面数字与覆盖率声明修正 + vsix repository 字段），CI run
+  `40176787903` success（ubuntu + Node 20，150/150）。
+- 发布门禁：本地全量测试连续两轮 150/150（首跑出现一次未复现的瞬时失败，输出被截断无法
+  定位用例；复跑两轮全绿且 ubuntu CI 绿，判定为环境瞬时波动，如实记录）。
+- Release：tag `v0.1.0` + GitHub Release（正文取自 docs/RELEASE_NOTES_v0.1.0.md，剥离草稿
+  标记），资产 `codementor-0.1.0.vsix`（12 文件，22.78 KB，vsce 无警告——repository 字段
+  已在 3505b2e 补齐）。
+- 仓库当前 **PRIVATE**：Release 已存在但仅协作者可见；转公开待所有者执行。
+- 未执行（待所有者）：VS Code Marketplace 发布（需 publisher PAT）；仓库转公开；最终命名
+  （PRD §9 codementor.io 相近风险——按所有者指示以现名 CodeMentor 发布）。
 
 ### 复审记录（2026-10-24）
 
