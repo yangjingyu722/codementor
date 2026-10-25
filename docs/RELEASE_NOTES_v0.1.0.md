@@ -16,7 +16,7 @@ CodeMentor 把每个设计决策的"为什么"变成一等公民：编码前声�
 
 ## 核心能力（v0.1.0）
 
-1. **先声明，后实现**：决策在编码前经核心服务登记，`declaredAt` 由服务端时钟盖章；
+1. **先声明，后实现**：决策在编码前经核心服务登记（MCP 工具或 HTTP API），`declaredAt` 由服务端时钟盖章；
    完整性规则保证"事后补写"无法伪装成"事前声明"（R1–R5）。
 2. **认知来源分级**：每条设计理由标注 `declared / observed / rationalized`，
    UI 三区分离呈现——AI 的事后圆场永远不会被展示成原始设计意图。
@@ -24,7 +24,7 @@ CodeMentor 把每个设计决策的"为什么"变成一等公民：编码前声�
    重定位；无法定位时显式标记 ambiguous/missing，绝不静默错位。
 4. **五步学习流程**：问题 → 方案判断 → 解释 → 代码验证 → 独立练习；三级渐进帮助；
    全部内容确定性生成自真实决策数据（无泛泛知识题）；进度跨会话恢复。
-5. **本地优先**：21 个端点的本机服务（仅 127.0.0.1 + token）；SQLite 存储；
+5. **本地优先**：24 个端点的本机服务（仅 127.0.0.1 + token）；SQLite 存储；
    VS Code 扩展零运行时依赖。
 
 ## 快速开始
@@ -42,7 +42,7 @@ node demo/seed-demo.mjs                          # 终端 2：装入两个示例
 
 ## 质量与验证
 
-- 131 项 Vitest（真实进程/文件/socket/git 仓库，无 Mock 冒充）+ 8 项真实 VS Code
+- 150 项 Vitest（真实进程/文件/socket/git 仓库，无 Mock 冒充）+ 8 项真实 VS Code
   扩展测试；语句覆盖率 90.3%。
 - `pnpm audit --prod`：0 已知漏洞。全链验证（build/typecheck/lint/format/test）
   在 Windows 本地与 GitHub CI（ubuntu + Node 20）双平台全绿。
@@ -50,7 +50,6 @@ node demo/seed-demo.mjs                          # 终端 2：装入两个示例
 
 ## 明确未实现（v0.1.0 边界）
 
-- **MCP Agent 适配**：Agent 目前经核心服务 HTTP API 接入；MCP 封装顺延（阶段 2 计划）。
 - **LLM 内容生成/评分**：学习内容为确定性模板；接口位已预留，LLM 评分永不作为事实。
 - **TypeScript 源码解析**：v0.1 仅支持 C（`SourceParser` 抽象已就绪，可扩展）。
 - **多用户/云同步/远端 API**：不在设计范围内。

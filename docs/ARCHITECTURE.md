@@ -18,8 +18,8 @@ CodeMentor 由三层构成：
 | -------------------------------------------------------- | ---- | ---------- | -------------------------------------------------------------------------------------------- | ---------------------- |
 | VS Code Extension (`apps/vscode`)                        | 4    | ✅         | 纯视图层：决策树 / 详情 Webview / CodeLens / 跳转（ADR-0007）                                | 任何业务规则、存储     |
 | Local Core Service (`apps/server`)                       | 1    | ✅         | 核心进程：装载引擎与存储、回环 HTTP + token 传输（ADR-0004）                                 | UI、Agent 私有格式解析 |
-| MCP Agent Adapter (`packages/mcp`*)                      | 2    | 计划       | 把核心层能力暴露为 MCP 工具（mentor_* 五工具）；经核心服务 API 落库                          | 决策规则本身           |
-| OpenCode Event Adapter                                   | 2    | 计划       | 订阅 OpenCode 事件，归一化为 AgentEvent                                                      | 其他 Agent 的私有格式  |
+| MCP Agent Adapter (`packages/mcp`)                       | 2    | ✅         | stdio MCP Server：mentor_* 五工具；纯转发层，经核心服务 API 落库（ADR-0009）                 | 决策规则本身           |
+| OpenCode Event Adapter (`packages/opencode-adapter`)     | 2    | ✅         | OpenCode 插件事件 → 归一化 AgentEvent 入库；隐私净化；静默降级（ADR-0009）                   | 其他 Agent 的私有格式  |
 | Engineering Decision Engine (`packages/decision-engine`) | 1/5  | ✅（基础） | 决策生命周期管理；完整性规则 R1–R5（verify 前瞻检查）；declaredAt 服务端盖章                 | 界面呈现               |
 | Code Mapping Engine (`packages/code-mapping`)            | 3    | ✅         | Tree-sitter 符号解析（C，可扩展）+ 只读 Git 分析；锚定/重定位/失效检测/提案（ADR-0005/0006） | 决策语义               |
 | Learning Engine (`packages/learning-engine`)             | 5    | ✅         | 确定性模板生成五步学习流；规则评分（gradedBy 治理）；进度由 Attempt 派生（ADR-0008）         | 出题之外的 AI 调用     |
