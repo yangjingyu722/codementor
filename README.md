@@ -55,6 +55,9 @@ Extensions panel → `…` menu → **Install from VSIX…** → select the file
 pnpm --filter @codementor/server start
 ```
 
+Windows shortcut: double-click **`启动CodeMentor.cmd`** in the repo root — it
+auto-installs/builds on first run and starts the service.
+
 It listens on `127.0.0.1` only, with a per-run token written to
 `~/.codementor/server.json`. All data stays in `~/.codementor/codementor.db`.
 
@@ -200,6 +203,8 @@ VS Code 分支编辑器（Cursor/Trae 等）不共用 `code` 命令：扩展面�
 ```bash
 pnpm --filter @codementor/server start
 ```
+
+Windows 快捷方式：双击项目根目录的 **`启动CodeMentor.cmd`**——首次运行自动安装依赖并构建，之后直接启动服务。
 
 只监听 `127.0.0.1`，端口与 token 写入 `~/.codementor/server.json`；数据保存在 `~/.codementor/codementor.db`，重启服务自动恢复。
 
