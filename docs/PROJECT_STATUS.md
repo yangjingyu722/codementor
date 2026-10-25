@@ -17,9 +17,10 @@
 - Release：tag `v0.1.0` + GitHub Release（正文取自 docs/RELEASE_NOTES_v0.1.0.md，剥离草稿
   标记），资产 `codementor-0.1.0.vsix`（12 文件，22.78 KB，vsce 无警告——repository 字段
   已在 3505b2e 补齐）。
-- 仓库当前 **PRIVATE**：Release 已存在但仅协作者可见；转公开待所有者执行。
-- 未执行（待所有者）：VS Code Marketplace 发布（需 publisher PAT）；仓库转公开；最终命名
-  （PRD §9 codementor.io 相近风险——按所有者指示以现名 CodeMentor 发布）。
+- 仓库已由所有者指示**转公开**（2026-10-25）：https://github.com/yangjingyu722/codementor
+  ——Release 与全部源码、文档、CI 记录现公开可见（转公开前已完成敏感信息扫描：零密钥/零硬编码凭据）。
+- 未执行（待所有者）：VS Code Marketplace 发布（需 publisher PAT）。最终命名按所有者指示
+  以现名 CodeMentor 发布（PRD §9 codementor.io 相近风险的后续观察责任归所有者）。
 
 ### 复审记录（2026-10-24）
 
