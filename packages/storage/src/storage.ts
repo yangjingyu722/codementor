@@ -693,6 +693,14 @@ export class CodeMentorStorage {
     return rows.map(rowToEvent);
   }
 
+  /** 按 session 查询（PRD F3 验收：会话事件可按 session 检索）。 */
+  listAgentEventsBySession(sessionId: string): AgentEvent[] {
+    const rows = this.db
+      .prepare('SELECT * FROM agent_events WHERE session_id = ? ORDER BY occurred_at')
+      .all(sessionId) as EventRow[];
+    return rows.map(rowToEvent);
+  }
+
   listAttemptsByDecision(decisionId: string): Attempt[] {
     const rows = this.db
       .prepare(

@@ -28,6 +28,9 @@
 | POST | /api/decisions/:id/learning           | —                                                                                                         | 201 `{regenerated, session}`                  | 阶段 5：生成学习会话（幂等；answerKey 不下发）           |
 | GET  | /api/decisions/:id/learning           | —                                                                                                         | 200 `{session}`                               | 阶段 5：学习会话视图（进度/级别推荐由作答派生）          |
 | POST | /api/exercises/:id/attempts           | `{answer, level}`                                                                                         | 201 `{attempt, outcome, feedback}`            | 阶段 5：确定性评分并保存作答；反馈引用真实工程信息       |
+| POST | /api/events                           | `{projectRoot, sessionId, agent, type, payload}`                                                          | 201 AgentEvent                                | 阶段 2：OpenCode 适配器事件入库（归属活跃任务，可空）    |
+| GET  | /api/tasks/:id/events                 | —                                                                                                         | 200 AgentEvent[]                              | 阶段 2：任务事件列表                                     |
+| GET  | /api/sessions/:id/events              | —                                                                                                         | 200 `{events: AgentEvent[]}`                  | 阶段 2：**按 session 查询**（PRD F3 验收原文）           |
 | POST | /api/exercises/:id/attempts           | `{answer, level(1\|2\|3)}`                                                                                | 201 `{attempt, outcome, feedback}`            | 阶段 5：确定性评分并保存作答；反馈引用真实工程信息       |
 
 错误码 → HTTP：`VALIDATION`/`INVALID_JSON`→400、`UNAUTHORIZED`→401、`NOT_FOUND`→404、`METHOD_NOT_ALLOWED`→405、`INVALID_STATE`→409（含符号歧义）、`CONFLICT`→409、`INTEGRITY_VIOLATION`→422、`PAYLOAD_TOO_LARGE`→413、`MAPPING_UNAVAILABLE`→503、`GIT_ERROR`→500、`INTERNAL`→500。

@@ -5,7 +5,21 @@
 
 ## [Unreleased]
 
-- 计划：MCP Agent 适配（阶段 2，顺延）、扩展测试 CI 化（ubuntu + xvfb）、TypeScript 语言支持。
+### Added（2026-10-25，阶段 2）
+
+- **MCP Server**（`@codementor/mcp`）：stdio 传输，5 个 `mentor_*` 工具（start_task /
+  record_decision / record_verification / finish_task / get_context），JSON Schema 严格
+  校验；纯转发层（不触碰存储），declaredAt 由核心服务时钟盖章。
+- **OpenCode 事件适配器**（`@codementor/opencode-adapter`）：事件归一化 + 隐私净化 +
+  服务不可达时静默降级；AgentEvent 入库（迁移 0004/0005，归属活跃任务，**可按 session
+  查询**）。
+- **决策登记工具**（`tools/record-decision.mjs`）：对任意仓库一条命令登记任务/决策/锚点。
+- 端点数 21 → 24（events 入库 / 按任务查询 / **按 session 查询**）。
+- 文档：ADR-0009、[docs/MCP_SETUP.md](docs/MCP_SETUP.md)。
+
+### 计划
+
+- 扩展测试 CI 化（ubuntu + xvfb）、TypeScript 语言支持、commit-time ≤ declaredAt 自动校验。
 
 ## [0.1.0] - 2026-10-24
 

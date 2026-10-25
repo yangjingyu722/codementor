@@ -26,4 +26,4 @@
 ## 后果与风险
 
 - MCP 子进程依赖 `server.json` 发现：服务未启动时 MCP 进程打印引导信息退出（Agent 端工具不可用但不产生脏数据）。
-- OpenCode 真实回合验证遇到网关延迟（antigravity/gemini-2.5-flash 7 分钟未完成编辑，已终止）——真实联动标记 BLOCKED（见 TEST_REPORT）；协议层已由真实 stdio 集成测试覆盖（6/6）。
+- OpenCode 真实回合验证遇到网关延迟（antigravity/gemini-2.5-flash 7 分钟未完成编辑，已终止）——真实联动标记 BLOCKED（见 docs/TEST_REPORT.md「阶段 2 验证记录」节，该节记录了完整尝试过程）；协议层已由真实 stdio 集成测试覆盖（6/6）。

@@ -234,6 +234,11 @@ const ROUTES: Route[] = [
     segments: ['api', 'tasks', ':id', 'events'],
     handler: (ctx) => ctx.engine.listTaskEvents(requireParam(ctx, 'id')),
   },
+  {
+    method: 'GET',
+    segments: ['api', 'sessions', ':id', 'events'],
+    handler: (ctx) => ({ events: ctx.engine.listSessionEvents(requireParam(ctx, 'id')) }),
+  },
 ];
 
 function requireParam(ctx: HandlerContext, name: string): string {

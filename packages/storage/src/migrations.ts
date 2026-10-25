@@ -148,6 +148,13 @@ export const MIGRATIONS: readonly Migration[] = [
       CREATE INDEX idx_agent_events_task ON agent_events(task_id);
     `,
   },
+  {
+    id: 5,
+    name: '0005_agent_events_session_index',
+    up: `
+      CREATE INDEX idx_agent_events_session ON agent_events(session_id);
+    `,
+  },
 ];
 
 /** 幂等迁移：未应用的迁移按序在事务中执行并登记。 */

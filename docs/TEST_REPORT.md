@@ -122,6 +122,48 @@
 
 说明：以上 131 = 124 + e2e 5 + demo seed 2；阶段 6 未新增业务功能。
 
+## 阶段 2 验证记录（2026-10-25 恢复执行，追加）
+
+### 15 项测试全部真实执行
+
+| #   | 测试项                                                                               | 文件                                           | 结果 |
+| --- | ------------------------------------------------------------------------------------ | ---------------------------------------------- | ---- |
+| 1   | MCP 初始化与工具发现（真实 stdio 协议，SDK Client ↔ 子进程，5 工具严格 JSON Schema） | tests/mcp.integration.test.ts                  | ✅   |
+| 2   | mentor_start_task 合法调用（项目注册 + 任务持久化，经核心服务 HTTP 核对）            | 同上                                           | ✅   |
+| 3   | mentor_record_decision（declaredAt 服务端盖章，主张落库）                            | 同上                                           | ✅   |
+| 4   | mentor_record_verification + mentor_get_context（验证闭环可读）                      | 同上                                           | ✅   |
+| 5   | mentor_finish_task（active→completed）                                               | 同上                                           | ✅   |
+| 6   | 非法输入（缺 claims）→ isError 结构化错误                                            | 同上                                           | ✅   |
+| 7   | OpenCode 事件归一化映射（file/session/tool/test/message/other）                      | packages/opencode-adapter/test/adapter.test.ts | ✅   |
+| 8   | 隐私净化（凭据键 [redacted]、嵌套对象不透传）                                        | 同上                                           | ✅   |
+| 9   | 适配器真实提交（事件入库并归属活跃任务）                                             | 同上                                           | ✅   |
+| 10  | 降级：服务不可达时处理器静默返回，不阻塞 Agent                                       | 同上                                           | ✅   |
+| 11  | record-decision.mjs flags 模式（任务/决策/锚点真实落库）                             | tests/record-decision.test.ts                  | ✅   |
+| 12  | record-decision 幂等（按标题复用进行中任务）                                         | 同上                                           | ✅   |
+| 13  | 降级红线：不调用 MCP 无法伪造事前声明（空 claims 契约拒绝 400）                      | tests/degradation.test.ts                      | ✅   |
+| 14  | 降级观察通道：文件变化 → 锚点提案可用且不落库；适配器事件入库                        | 同上                                           | ✅   |
+| 15  | **事件按 session 查询（M1 修复验证）**：同会话三类事件过滤正确、跨会话隔离、空结果   | tests/events.session.test.ts                   | ✅   |
+
+（MCP 6 + adapter 4 + degrade 3 + record 2 = 15；全量 Vitest 23 文件 150 项通过。）
+
+### BLOCKED 如实记录
+
+**OpenCode 真实联动回合：BLOCKED**。opencode 1.17.14 已安装并可启动；项目注册/任务/插件
+接线全部就绪（种子成功，SEEDED 输出留存）；使用已认证 provider
+（antigravity-manager/gemini-2.5-flash）发起真实回合后 **7+ 分钟未产生任何文件编辑或事件**，
+判定为模型网关延迟/挂起，已终止进程。协议层（真实 stdio MCP 集成 6/6）与事件链路
+（adapter 真实 HTTP 提交 4/4）不受此影响。替代验证：Agent 行为的登记链路由 record 工具与
+适配器测试以真实 HTTP 全流程覆盖。**不宣称真实 Agent 端到端已通过。**
+
+### CI 记录
+
+| Run         | 提交                   | 结果                                                                            |
+| ----------- | ---------------------- | ------------------------------------------------------------------------------- |
+| 40097181064 | b178bfd（阶段 2 主体） | **failure**——5 个 lint 错误（清理用例的未使用导入），本人命令链失误导致带病推送 |
+| 40097677395 | b2ab789（lint 清理）   | **success**（ubuntu + Node 20，全绿）                                           |
+| 40145695039 | 2555f58（README 重写） | **success**                                                                     |
+| 本节整改    | 9ec…→（M1+M2 提交）    | 推送后见 gh run list                                                            |
+
 ### 阶段 6 GitHub CI 记录
 
 | Run           | 提交                                                       | 结果                                                                                                    |

@@ -273,4 +273,9 @@ export class DecisionEngine {
     this.storage.getTask(taskId);
     return this.storage.listAgentEventsByTask(taskId);
   }
+
+  /** 只读查询：按 session 检索事件（PRD F3）。 */
+  listSessionEvents(sessionId: string): AgentEvent[] {
+    return this.storage.listAgentEventsBySession(sessionId);
+  }
 }
